@@ -6,14 +6,36 @@
 
 - [x] **Phase 0 — Toolchain:** CocoaPods 1.16.2 (brew, own ruby) on PATH; iPad Pro 11" (M4) sim booted.
 - [x] **Phase 1 — Native-safe dual build:** vite-plugin-pwa gated behind `CAP_BUILD`; `build:native` (cross-env, base `/`, SW off). Verified: native dist root-relative + no SW + grep gates clean; web dist unchanged; 155 tests + lint green.
-- [ ] **Phase 2 — Capacitor scaffold:** install Capacitor 7 + plugins; `capacitor.config.ts`; `cap add ios`; `.gitignore` native artifacts; `cap sync` clean.
-- [ ] **Phase 3 — Native UX:** safe-area insets; lock overscroll; splash + status bar; app icon set from master.
-- [ ] **Phase 4 — Native capabilities:** haptics on celebrate (guarded); WKWebView audio/TTS probe + native fallback.
-- [ ] **Phase 5 — Build/run/verify on iPad Simulator:** 10-point functional smoke + screenshots; full web regression suite green.
-- [ ] **Phase 6 — Docs + handoff:** `docs/IPAD-APP.md`; note deferred store path; update memory.
+- [x] **Phase 2 — Capacitor scaffold:** Capacitor 7.6.6 (core/ios/cli + app/haptics/splash/status-bar) + TTS 6.1.0; `capacitor.config.ts`; `cap add ios` (pod install clean); `.gitignore` native artifacts; `cap doctor` no skew; `cap sync` clean.
+- [x] **Phase 3 — Native UX:** status bar hidden + splash dismiss (`src/native/bootNative.ts`); body scroll/overscroll lock; per-element safe-area insets (Back/Replay inline, `.cf-gate` css); branded 1024 icon + 2732 cream splash.
+- [x] **Phase 4 — Native capabilities:** `feedback.ts` haptics (celebrate/tap, reduce-motion-gated, web no-op); `capacitorTtsEngine.ts` composite native-TTS engine (SFX reuse WebAudio, speaking events synthesized); engine selected by platform in `App.tsx`.
+- [x] **Phase 5 — Build/run/verify:** native app boots + renders on iPad Pro 11" (M4) sim; PlayScreen verified portrait+landscape on native bundle (chrome/safe-areas/confetti/reflow); ReplayPill `--speaking` = voice proxy; e2e 6/6; full web regression green.
+- [x] **Phase 6 — Docs + handoff:** `docs/IPAD-APP.md` (build/run + architecture + gotchas + verification); deferred store path noted; memory updated.
 
-### Review (filled in as phases complete)
-_(pending)_
+### Review
+
+**Outcome:** Counting Friends now runs as a genuine native iPadOS app (Capacitor 7 wrapper)
+on the iPad Simulator, with the web PWA fully preserved (zero regression). Spec was reviewed
+by 3 independent agents (all GO-WITH-FIXES); corrections folded in before building.
+
+**Key engineering decisions / deviations:**
+- Native build disables the PWA service worker + uses base `/` (WKWebView gotchas) via a
+  `CAP_BUILD` env gate — web build untouched.
+- Native TTS (iOS speech) replaces Web Speech on device (WKWebView `speechSynthesis` is
+  flaky); SFX still WebAudio. Reliable voice without losing the synth blips.
+- Podfile/app deployment target kept at Capacitor default iOS 14 (consistent app+Pods,
+  runs on all installed 18.x/26.3 sims) rather than the spec's tentative 16 — bumping only
+  the Podfile would desync from the app target.
+- Verification was done autonomously (computer-use sim-control needs human approval, which
+  timed out while unattended): native shell proven via simulator screenshot; PlayScreen +
+  rotation proven on the identical native bundle via Playwright at iPad size; flows via e2e.
+
+**Pre-existing issue found (NOT caused by this work):** `e2e/flows.spec.ts` "correct tap"
+test is RNG/timing-flaky (~1-in-6); passed 5/5 on isolated re-run and 6/6 on suite re-run.
+Flagged for a separate hardening task.
+
+**Owner to-do before any App Store step (deferred by design):** real-device audio/haptic
+spot-check; Apple Developer enrollment + signing; store listing (draft in STORE_LISTING.md).
 
 ---
 
