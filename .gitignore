@@ -43,3 +43,7 @@ pnpm-debug.log*
 # misc
 .cache/
 .tmp/
+
+# verification / screenshot artifacts
+.playwright-mcp/
+/cf-*.png

@@ -108,6 +108,7 @@ export function reducer(state: GameState, action: Action): GameState {
         settingsOpen: false,
         status: 'asking',
         animatingValue: null,
+        gateProgress: 0,
         speaking: false,
       };
 

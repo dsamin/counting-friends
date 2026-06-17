@@ -4,11 +4,13 @@ import {
   tierMax,
   tierChoices,
   animalSize,
+  confettiCount,
   generateRound,
   praiseLine,
   promptLine,
 } from './round';
 import { CHARACTERS } from './characters';
+import { CONFETTI } from './constants';
 
 /**
  * Array-backed deterministic RNG. Returns scripted values in order, then
@@ -72,6 +74,22 @@ describe('animalSize', () => {
   it('treats count 0 (and negatives) as at least 1', () => {
     // Math.max(1, count) guards the sqrt
     expect(animalSize(0)).toBe(160);
+  });
+});
+
+describe('confettiCount', () => {
+  it('reduce-motion collapses to the sparkle count regardless of density', () => {
+    expect(confettiCount(true, 'full')).toBe(CONFETTI.sparkles);
+    expect(confettiCount(true, 'calm')).toBe(CONFETTI.sparkles);
+    expect(confettiCount(true, 'full')).toBe(5);
+  });
+  it('full density bursts the full particle count', () => {
+    expect(confettiCount(false, 'full')).toBe(CONFETTI.full);
+    expect(confettiCount(false, 'full')).toBe(74);
+  });
+  it('calm density bursts the calm particle count', () => {
+    expect(confettiCount(false, 'calm')).toBe(CONFETTI.calm);
+    expect(confettiCount(false, 'calm')).toBe(34);
   });
 });
 

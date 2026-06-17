@@ -1,6 +1,6 @@
 import type { Character, Rng, Round, Tier } from './types';
 import { CHARACTERS } from './characters';
-import { WORDS } from './constants';
+import { CONFETTI, WORDS } from './constants';
 
 /** Highest count for a tier: easy 5, medium 10, hard 20. */
 export function tierMax(t: Tier): number {
@@ -23,6 +23,20 @@ function clamp(min: number, val: number, max: number): number {
  */
 export function animalSize(count: number): number {
   return Math.round(clamp(58, 560 / Math.sqrt(Math.max(1, count)), 160));
+}
+
+/**
+ * How many confetti particles a celebration fires. Reduce-motion always
+ * collapses to a handful of soft sparkles; otherwise the `confettiDensity`
+ * prop picks the calm (34) or full (74) burst. Ported from the prototype's
+ * `rm ? sparkles : (density === 'calm' ? 34 : 74)` branch.
+ */
+export function confettiCount(
+  reduceMotion: boolean,
+  density: 'full' | 'calm',
+): number {
+  if (reduceMotion) return CONFETTI.sparkles;
+  return density === 'calm' ? CONFETTI.calm : CONFETTI.full;
 }
 
 /**

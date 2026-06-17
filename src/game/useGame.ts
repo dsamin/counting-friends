@@ -11,6 +11,7 @@ import {
 } from './persistence';
 import { type AudioEngine, silentAudio } from './audio';
 import { type GameState, gateProgressFrom, initialState, reducer } from './gameState';
+import { prefersReducedMotion } from './reduceMotion';
 
 export interface UseGameOptions {
   audio?: AudioEngine;
@@ -56,6 +57,9 @@ export function useGame(options: UseGameOptions = {}): {
     const prefs = loadPrefs({
       tier: defaults.defaultTier,
       voiceEnabled: defaults.voiceEnabled,
+      // First-run default for the reduce-motion toggle: honor the OS
+      // `prefers-reduced-motion` preference. SSR/old-browser safe.
+      reduceMotion: prefersReducedMotion(),
     });
     return initialState(prefs, defaults);
   });

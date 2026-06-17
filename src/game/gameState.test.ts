@@ -145,6 +145,7 @@ describe('BACK', () => {
       settingsOpen: true,
       status: 'correct',
       animatingValue: 7,
+      gateProgress: 0.6,
       speaking: true,
       tier: 'hard',
       childName: 'Jayden',
@@ -154,6 +155,8 @@ describe('BACK', () => {
     expect(next.settingsOpen).toBe(false);
     expect(next.status).toBe('asking');
     expect(next.animatingValue).toBeNull();
+    // A partially-filled gate ring must not persist back on the start screen.
+    expect(next.gateProgress).toBe(0);
     expect(next.speaking).toBe(false);
     // preserved
     expect(next.tier).toBe('hard');

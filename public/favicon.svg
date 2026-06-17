@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <title>Counting Friends — duck mark (badge)</title>
+  <circle cx="160" cy="160" r="150" fill="#FBF3DC" stroke="#5A4633" stroke-width="8"></circle>
+  <g transform="translate(160 168) scale(2.5) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+    <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+    <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+    <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+    <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+    <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+  </g>
+</svg>
