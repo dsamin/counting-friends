@@ -11,23 +11,13 @@ import {
 } from './persistence';
 import { type AudioEngine, silentAudio } from './audio';
 import { type GameState, gateProgressFrom, initialState, reducer } from './gameState';
+import { prefersReducedMotion } from './reduceMotion';
 
 export interface UseGameOptions {
   audio?: AudioEngine;
   rng?: Rng;
   defaultTier?: Tier;
   voiceEnabled?: boolean;
-}
-
-/**
- * Read the OS `prefers-reduced-motion` preference. SSR/old-browser safe:
- * returns false when `window`/`matchMedia` are unavailable.
- */
-function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 export interface GameActions {

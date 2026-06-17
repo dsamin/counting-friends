@@ -1,12 +1,20 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { CONFETTI, TIMING } from '../game/constants';
+import { confettiCount } from '../game/round';
 
 /**
- * Imperative handle exposed by `Confetti`. Call `burst(x, y, reduceMotion)`
- * with a canvas-relative origin to fire the celebration.
+ * Imperative handle exposed by `Confetti`. Call
+ * `burst(x, y, reduceMotion, density)` with a canvas-relative origin to fire
+ * the celebration. `density` ('full' | 'calm') picks the particle count when
+ * motion is allowed; it defaults to 'full'.
  */
 export interface ConfettiHandle {
-  burst(originX: number, originY: number, reduceMotion: boolean): void;
+  burst(
+    originX: number,
+    originY: number,
+    reduceMotion: boolean,
+    density?: 'full' | 'calm',
+  ): void;
 }
 
 interface Particle {
@@ -66,7 +74,12 @@ const Confetti = forwardRef<ConfettiHandle>(function Confetti(_props, ref) {
   useImperativeHandle(
     ref,
     () => ({
-      burst(originX: number, originY: number, reduceMotion: boolean) {
+      burst(
+        originX: number,
+        originY: number,
+        reduceMotion: boolean,
+        density: 'full' | 'calm' = 'full',
+      ) {
         const canvas = canvasRef.current;
         if (!canvas) return;
         sizeCanvas();
@@ -84,10 +97,14 @@ const Confetti = forwardRef<ConfettiHandle>(function Confetti(_props, ref) {
         const ox = originX;
         const oy = originY;
 
+        // Single source of truth for particle count: rm → sparkles,
+        // else calm(34) / full(74) per the density prop.
+        const count = confettiCount(reduceMotion, density);
+
         const parts: Particle[] = [];
         if (reduceMotion) {
-          for (let i = 0; i < CONFETTI.sparkles; i++) {
-            const a = (i / CONFETTI.sparkles) * Math.PI * 2;
+          for (let i = 0; i < count; i++) {
+            const a = (i / count) * Math.PI * 2;
             parts.push({
               x: ox,
               y: oy,
@@ -101,7 +118,7 @@ const Confetti = forwardRef<ConfettiHandle>(function Confetti(_props, ref) {
             });
           }
         } else {
-          for (let i = 0; i < CONFETTI.full; i++) {
+          for (let i = 0; i < count; i++) {
             const a = Math.random() * Math.PI * 2;
             const sp = 3.5 + Math.random() * 8;
             parts.push({

@@ -5,6 +5,7 @@ import PlayScreen from './PlayScreen';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import { CHARACTERS } from '../game/characters';
+import { promptLine } from '../game/round';
 
 function baseState(over: Partial<GameState> = {}): GameState {
   return {
@@ -116,5 +117,52 @@ describe('PlayScreen', () => {
       <PlayScreen state={baseState({ settingsOpen: true })} actions={spyActions()} />,
     );
     expect(screen.getByText(/for grown-ups/i)).toBeInTheDocument();
+  });
+
+  it('announces the current prompt in a polite live region', () => {
+    // CHARACTERS[0] is the duck → "How many ducks?".
+    render(
+      <PlayScreen
+        state={baseState({ animal: CHARACTERS[0], count: 3, roundId: 1 })}
+        actions={spyActions()}
+      />,
+    );
+    const live = screen.getByRole('status');
+    expect(live).toHaveTextContent(promptLine(CHARACTERS[0]));
+    expect(live).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('re-announces and remounts the live region each round, even for the same animal', () => {
+    // Two consecutive rounds with the SAME animal: screen readers dedupe
+    // identical consecutive text, so the region must remount (keyed on
+    // roundId) to force a fresh announcement.
+    const { rerender } = render(
+      <PlayScreen
+        state={baseState({ animal: CHARACTERS[0], count: 2, roundId: 1 })}
+        actions={spyActions()}
+      />,
+    );
+    const first = screen.getByRole('status');
+    expect(first).toHaveTextContent(promptLine(CHARACTERS[0]));
+
+    // Same animal, new round id → the prompt text updates and the node is a
+    // fresh element (key={roundId} remounts it).
+    rerender(
+      <PlayScreen
+        state={baseState({ animal: CHARACTERS[0], count: 5, roundId: 2 })}
+        actions={spyActions()}
+      />,
+    );
+    const second = screen.getByRole('status');
+    expect(second).toHaveTextContent(promptLine(CHARACTERS[0]));
+    // Keyed remount: the live-region DOM node identity changed between rounds.
+    expect(second).not.toBe(first);
+  });
+
+  it('shows no prompt text before the first round is dealt (count 0)', () => {
+    render(
+      <PlayScreen state={baseState({ count: 0 })} actions={spyActions()} />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('');
   });
 });

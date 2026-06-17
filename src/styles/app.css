@@ -88,12 +88,15 @@
 }
 .cf-number:active { transform: translateY(5px); }
 .cf-number--easy { width: var(--cf-btn-easy); height: var(--cf-btn-easy); font-size: calc(var(--cf-btn-easy) * .52); }
+/* Color/state feedback — applied even under reduce-motion. */
 .cf-number--correct {
   background: var(--cf-duck);
   box-shadow: var(--cf-press-gold);
-  animation: cf-squashPop 720ms var(--cf-ease) both;
 }
-.cf-number--wrong { animation: cf-wrongWobble 600ms var(--cf-ease) both; }
+/* Motion keyframes — applied separately, only when motion is allowed (the
+   component drops these classes under reduce-motion). */
+.cf-squashPop { animation: cf-squashPop 720ms var(--cf-ease) both; }
+.cf-wrongWobble { animation: cf-wrongWobble 600ms var(--cf-ease) both; }
 
 /* — Replay pill (mascot + sound bars) ——————————————————————————— */
 .cf-replay {
@@ -168,7 +171,18 @@
   [style*='cf-floaty'] {
     animation: none !important;
   }
-  .cf-number--correct {
+  /* Button squash (correct) and wobble (wrong) keyframes. The JS already drops
+     these classes under the effective reduce-motion value; this is the safety
+     net for when the OS prefers reduced motion but the in-app toggle is off. */
+  .cf-squashPop,
+  .cf-wrongWobble,
+  .cf-number--correct,
+  .cf-number--wrong {
+    animation: none !important;
+  }
+  /* Replay-pill sound bars (looping soundbar pulse). */
+  .cf-replay--speaking .cf-bar,
+  .cf-bar {
     animation: none !important;
   }
 }

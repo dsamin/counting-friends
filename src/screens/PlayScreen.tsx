@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import { animalSize, promptLine } from '../game/round';
+import { prefersReducedMotion } from '../game/reduceMotion';
 import { TIMING } from '../game/constants';
 import CharacterSprite from '../components/CharacterSprite';
 import NumberButton from '../components/NumberButton';
@@ -20,9 +21,15 @@ import Confetti, { type ConfettiHandle } from '../components/Confetti';
 interface PlayScreenProps {
   state: GameState;
   actions: GameActions;
+  /** Particle count for the celebration burst when motion is allowed. */
+  confettiDensity?: 'full' | 'calm';
 }
 
-export default function PlayScreen({ state, actions }: PlayScreenProps) {
+export default function PlayScreen({
+  state,
+  actions,
+  confettiDensity = 'full',
+}: PlayScreenProps) {
   const confettiRef = useRef<ConfettiHandle>(null);
   // Wrapper for the confetti canvas, used to translate button coords into
   // canvas-relative coords for the burst origin.
@@ -34,6 +41,12 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
 
   const size = animalSize(state.count);
   const isEasy = state.tier === 'easy';
+
+  // Effective reduce-motion: the in-app toggle OR the OS preference. Single
+  // source of truth so confetti, the animal entrance/idle motion, and the
+  // button squash/wobble all stay consistent with the CSS media-query safety
+  // net (which also fires on the OS preference alone).
+  const reduceMotion = state.reduceMotion || prefersReducedMotion();
 
   // Fire confetti when a correct answer flips the round to 'correct'.
   useEffect(() => {
@@ -53,9 +66,15 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
       cx = r.left + r.width / 2 - hostRect.left;
       cy = r.top + r.height / 2 - hostRect.top;
     }
-    confettiRef.current?.burst(cx, cy, state.reduceMotion);
+    confettiRef.current?.burst(cx, cy, reduceMotion, confettiDensity);
     // animKey changes on every choice, so repeated correct rounds re-fire.
-  }, [state.status, state.animKey, state.animatingValue, state.reduceMotion]);
+  }, [
+    state.status,
+    state.animKey,
+    state.animatingValue,
+    reduceMotion,
+    confettiDensity,
+  ]);
 
   return (
     <div
@@ -70,8 +89,15 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
     >
       {/* Live region: announces the current question as text to assistive tech
           (VoiceOver) and deaf/HoH users, without adding visible child-facing
-          copy. Keyed on roundId so each new round re-announces. */}
-      <div className="sr-only" role="status" aria-live="polite">
+          copy. Keyed on roundId so it remounts each round and re-announces even
+          when consecutive rounds use the same animal (screen readers otherwise
+          dedupe identical consecutive text). */}
+      <div
+        key={state.roundId}
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+      >
         {state.count > 0 ? promptLine(state.animal) : ''}
       </div>
 
@@ -92,7 +118,7 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
       >
         {Array.from({ length: state.count }).map((_, i) => {
           const delay = i * TIMING.popStagger;
-          const animation = state.reduceMotion
+          const animation = reduceMotion
             ? 'none'
             : `cf-popIn ${TIMING.popInDuration}ms cubic-bezier(.34,1.56,.64,1) ${delay}ms both, ` +
               `cf-bob ${2400 + (i % 3) * 350}ms ease-in-out ${delay + TIMING.popInDuration}ms infinite`;
@@ -135,6 +161,7 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
             state={state}
             onChoose={actions.choose}
             isEasy={isEasy}
+            reduceMotion={reduceMotion}
             innerRef={(el) => {
               if (el) buttonRefs.current.set(value, el);
               else buttonRefs.current.delete(value);

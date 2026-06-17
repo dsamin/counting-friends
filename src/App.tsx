@@ -11,6 +11,9 @@ import PlayScreen from './screens/PlayScreen';
  * via `useGame`, keeps the engine's enabled flag in sync with the voice toggle,
  * and renders the continuous storybook scene plus whichever screen is active.
  */
+/** Particle density for the celebration burst (tweakable prop, see HANDOFF §12). */
+const CONFETTI_DENSITY: 'full' | 'calm' = 'full';
+
 export default function App() {
   // Create the engine once for the lifetime of the app.
   const engine = useMemo(() => createWebAudioEngine(), []);
@@ -28,7 +31,11 @@ export default function App() {
       {state.screen === 'start' ? (
         <StartScreen state={state} actions={actions} />
       ) : (
-        <PlayScreen state={state} actions={actions} />
+        <PlayScreen
+          state={state}
+          actions={actions}
+          confettiDensity={CONFETTI_DENSITY}
+        />
       )}
     </div>
   );

@@ -109,4 +109,62 @@ describe('NumberButton', () => {
     expect(btn).not.toHaveClass('cf-number--correct');
     expect(btn).not.toHaveClass('cf-number--wrong');
   });
+
+  it('applies the squash/wobble keyframe classes only when motion is allowed', () => {
+    const state = baseState({
+      animatingValue: 3,
+      animType: 'correct',
+      status: 'correct',
+    });
+    render(
+      <NumberButton
+        value={3}
+        state={state}
+        onChoose={() => {}}
+        isEasy={false}
+        reduceMotion={false}
+      />,
+    );
+    const btn = screen.getByRole('button', { name: 'number 3' });
+    expect(btn).toHaveClass('cf-number--correct');
+    expect(btn).toHaveClass('cf-squashPop');
+  });
+
+  it('with reduceMotion + correct keeps the color class but drops the squashPop keyframe', () => {
+    const state = baseState({
+      animatingValue: 3,
+      animType: 'correct',
+      status: 'correct',
+    });
+    render(
+      <NumberButton
+        value={3}
+        state={state}
+        onChoose={() => {}}
+        isEasy={false}
+        reduceMotion
+      />,
+    );
+    const btn = screen.getByRole('button', { name: 'number 3' });
+    // Color/state still reads as correct...
+    expect(btn).toHaveClass('cf-number--correct');
+    // ...but the motion keyframe is suppressed.
+    expect(btn).not.toHaveClass('cf-squashPop');
+  });
+
+  it('with reduceMotion + wrong keeps the color class but drops the wobble keyframe', () => {
+    const state = baseState({ animatingValue: 2, animType: 'wrong' });
+    render(
+      <NumberButton
+        value={2}
+        state={state}
+        onChoose={() => {}}
+        isEasy={false}
+        reduceMotion
+      />,
+    );
+    const btn = screen.getByRole('button', { name: 'number 2' });
+    expect(btn).toHaveClass('cf-number--wrong');
+    expect(btn).not.toHaveClass('cf-wrongWobble');
+  });
 });
