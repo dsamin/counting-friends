@@ -1,0 +1,38 @@
+/* ============================================================================
+   Counting Friends — global stylesheet entry
+   Order matters: self-hosted fonts → design tokens → component classes → app shell.
+   ========================================================================== */
+
+/* — Self-hosted display font (Baloo 2): weights 500,600,700,800 ———————— */
+@import '@fontsource/baloo-2/500.css';
+@import '@fontsource/baloo-2/600.css';
+@import '@fontsource/baloo-2/700.css';
+@import '@fontsource/baloo-2/800.css';
+
+/* — Self-hosted UI font (Quicksand): weights 400,500,600,700 —————————— */
+@import '@fontsource/quicksand/400.css';
+@import '@fontsource/quicksand/500.css';
+@import '@fontsource/quicksand/600.css';
+@import '@fontsource/quicksand/700.css';
+
+/* — Design system (verbatim from /css) ———————————————————————————————— */
+@import './tokens.css';
+@import './app.css';
+
+/* — App shell / global reset ——————————————————————————————————————————— */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--cf-cream);
+  font-family: var(--cf-font-ui);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}

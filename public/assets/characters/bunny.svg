@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 100 100">
+  <title>Momo the Bunny</title>
+  <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="39" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(-13 39 27)"></ellipse>
+    <ellipse cx="61" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(13 61 27)"></ellipse>
+    <ellipse cx="39" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(-13 39 29)"></ellipse>
+    <ellipse cx="61" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(13 61 29)"></ellipse>
+    <circle cx="50" cy="61" r="29" fill="#A8D8E8"></circle>
+    <circle cx="40" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+    <circle cx="60" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+    <path d="M46 65 L54 65 L50 69 Z" fill="#FF8A7A" stroke="none"></path>
+    <path d="M50 69 Q46 73 42 71 M50 69 Q54 73 58 71" stroke-width="3" fill="none"></path>
+    <circle cx="32" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+    <circle cx="68" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+  </g>
+</svg>

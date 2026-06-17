@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 100 100">
+  <title>Pip the Cat</title>
+  <g fill="none" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M27 40 L20 12 L47 31 Z" fill="#FF8A7A"></path>
+    <path d="M73 40 L80 12 L53 31 Z" fill="#FF8A7A"></path>
+    <path d="M31 36 L27 20 L41 31 Z" fill="#FFD2C7" stroke="none"></path>
+    <path d="M69 36 L73 20 L59 31 Z" fill="#FFD2C7" stroke="none"></path>
+    <circle cx="50" cy="58" r="32" fill="#FF8A7A"></circle>
+    <circle cx="39" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+    <circle cx="61" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+    <path d="M47 62 L53 62 L50 66 Z" fill="#5A4633" stroke="none"></path>
+    <path d="M44 68 Q50 73 56 68"></path>
+    <circle cx="33" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+    <circle cx="67" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+    <path d="M13 57 L27 60 M13 65 L27 64" stroke-width="3"></path>
+    <path d="M87 57 L73 60 M87 65 L73 64" stroke-width="3"></path>
+  </g>
+</svg>
