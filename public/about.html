@@ -524,6 +524,39 @@
       }
 
       /* ——— Footer ——————————————————————————————————————————————— */
+      /* ——— Closing CTA band (dark) ——————————————————————————— */
+      .cta-band {
+        background: var(--ink);
+        border-top: 4px solid var(--ink);
+        text-align: center;
+        padding: 72px 24px 76px;
+      }
+      .cta-band .wordmark-dark {
+        width: min(360px, 74vw);
+        margin: 0 auto 22px;
+        display: block;
+      }
+      .cta-band .cta-line {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: clamp(20px, 3.4vw, 28px);
+        color: var(--cream);
+        margin: 0 auto 28px;
+        max-width: 24ch;
+      }
+      .cta-band .btn-cta {
+        background: var(--duck);
+        border-color: var(--cream);
+        color: var(--ink);
+        box-shadow: 0 8px 0 rgba(255, 253, 246, 0.18);
+      }
+      .cta-band .btn-cta:hover {
+        box-shadow: 0 10px 0 rgba(255, 253, 246, 0.18);
+      }
+      .cta-band .btn-cta:active {
+        box-shadow: 0 2px 0 rgba(255, 253, 246, 0.18);
+      }
+
       footer {
         background: var(--cream);
         border-top: 4px solid var(--ink);
@@ -874,6 +907,22 @@
         </div>
       </section>
     </main>
+
+    <!-- ======================= CLOSING CTA (dark) ================== -->
+    <section class="cta-band" aria-labelledby="cta-title">
+      <img
+        class="wordmark-dark"
+        src="./assets/logo/wordmark-dark.png"
+        alt="Counting Friends"
+        width="360"
+        height="96"
+        loading="lazy"
+      />
+      <p class="cta-line" id="cta-title">
+        A calm place to count. Nothing to lose.
+      </p>
+      <a class="btn btn-cta" href="./">Play now →</a>
+    </section>
 
     <!-- ============================= FOOTER ========================== -->
     <footer>

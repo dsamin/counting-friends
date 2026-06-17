@@ -69,6 +69,28 @@ export default function ParentalGate({
         />
       </svg>
       <span className="cf-gate-dot" />
+      <svg
+        viewBox="0 0 24 24"
+        width="22"
+        height="22"
+        fill="none"
+        stroke="#5A4633"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          opacity: 0.32,
+          pointerEvents: 'none',
+        }}
+      >
+        <rect x="5" y="10" width="14" height="10" rx="2.5" />
+        <path d="M8 10 V7 a4 4 0 0 1 8 0 v3" />
+      </svg>
     </button>
   );
 }
