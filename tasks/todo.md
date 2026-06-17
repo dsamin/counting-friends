@@ -43,12 +43,14 @@
       CharacterSprite (inline SVG). Full playable app + component tests.
 - [x] **T6 — PWA + a11y + reduce-motion.** manifest, SW/offline, prefers-reduced-motion default,
       aria labels, apple-touch-icons, theme-color.
-- [ ] **T7 — E2E (Playwright) + screenshots.** tier→correct→celebration→wrong→gate→settings; capture
+- [x] **T7 — E2E (Playwright) + screenshots.** tier→correct→celebration→wrong→gate→settings; capture
       marketing screenshots.
-- [ ] **T8 — Marketing landing page.** One-pager: "No ads. No data. No fail." using marketing frames.
-- [ ] **T9 — Launch collateral & docs.** README, PRIVACY (hosted page), STORE_LISTING.md, LICENSE,
+- [x] **T8 — Marketing landing page.** One-pager: "No ads. No data. No fail." using marketing frames.
+- [x] **T9 — Launch collateral & docs.** README, PRIVACY (hosted page), STORE_LISTING.md, LICENSE,
       SWIFTUI-PORT.md, screenshot/preview guidance.
-- [ ] **T10 — CI/CD.** GitHub Actions: lint+test+build on PR; Pages deploy on main.
+- [x] **T10 — CI/CD.** GitHub Actions: lint+test+build on PR; Pages deploy on main.
+- [x] **T11 — Asset polish.** Wire remaining icons (voice/child/settings/lock/heart), iOS splash,
+      dark wordmark CTA; `docs/ASSET-USAGE.md` (every asset mapped, no orphans).
 
 ## Ship workflow
 - git init → seed commit on `main` → `gh repo create dsamin/counting-friends --public`.
@@ -60,5 +62,27 @@
 - PR2: full playable app (T4+T5+T6) + component/e2e
 - PR3: marketing + launch collateral + docs + CI/CD (T7+T8+T9+T10)
 
-## Review section
-_(filled in as work completes)_
+## Review section — COMPLETE ✅ (2026-06-17)
+
+**Shipped:** a complete, tested, **live** installable PWA of Counting Friends.
+
+- **Live app:** https://dsamin.github.io/counting-friends/
+- **Marketing:** https://dsamin.github.io/counting-friends/about.html
+- **Privacy:** https://dsamin.github.io/counting-friends/privacy.html
+- **Repo:** https://github.com/dsamin/counting-friends (public)
+
+**What was delivered**
+- Faithful React+TS+Vite port of the prototype (every timing/constant extracted line-by-line and asserted).
+- 155 unit/component tests + 6 Playwright e2e behavioral tests; CI (lint·typecheck·test·build·e2e) + Pages deploy.
+- Offline-first PWA (self-hosted fonts, zero runtime network), reduce-motion + a11y (focus trap, aria-live, VoiceOver labels).
+- All 49 assets used (audited in `docs/ASSET-USAGE.md`).
+- Launch collateral: README, hosted privacy policy, App Store listing + Guideline 1.3 self-audit, proprietary LICENSE, SwiftUI port handoff.
+- Verified rendering & playing in production (start → counting → celebration+confetti → auto-advance → no-fail → gate → settings).
+
+**PRs:** #1 foundation · #2 full app · #3 launch · #4 asset polish — all CI-green and merged.
+
+**Follow-ups for Devan before App Store**
+- Replace placeholder contact email `hello@countingfriends.app` in `public/privacy.html` + `docs/STORE_LISTING.md`.
+- Record real VO (browser TTS is the dev stand-in) per `docs/SWIFTUI-PORT.md` audio sheet.
+- (Optional) transparent-background wordmark to avoid the faint white pill on the marketing hero.
+- Native SwiftUI iPad build per `docs/SWIFTUI-PORT.md` (Xcode 26.3 available) for the App Store Kids launch.
