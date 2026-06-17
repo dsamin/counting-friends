@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
+import UiIcon from './UiIcon';
 
 /**
  * Switch — a small accessible toggle matching the `.cf-switch` look. Reports as
@@ -167,16 +168,21 @@ export default function SettingsSheet({
         <label
           htmlFor="cf-child-name"
           style={{
-            display: 'block',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
             fontWeight: 700,
             color: 'var(--cf-ink)',
             fontSize: 15,
             marginBottom: 8,
           }}
         >
-          Child&rsquo;s name{' '}
-          <span style={{ fontWeight: 500, color: 'var(--cf-ink-faint)' }}>
-            (optional)
+          <UiIcon name="child" size={20} />
+          <span>
+            Child&rsquo;s name{' '}
+            <span style={{ fontWeight: 500, color: 'var(--cf-ink-faint)' }}>
+              (optional)
+            </span>
           </span>
         </label>
         <input
@@ -208,20 +214,34 @@ export default function SettingsSheet({
             marginTop: 8,
           }}
         >
-          <div>
-            <div
-              style={{ fontWeight: 700, color: 'var(--cf-ink)', fontSize: 16 }}
-            >
-              Reduce motion
-            </div>
-            <div
-              style={{
-                fontSize: 12.5,
-                color: 'var(--cf-ink-soft)',
-                fontWeight: 500,
-              }}
-            >
-              Calmer celebration, one soft sparkle.
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              color: 'var(--cf-ink)',
+            }}
+          >
+            <UiIcon
+              name="settings"
+              size={22}
+              className="cf-settings-row-icon"
+            />
+            <div>
+              <div
+                style={{ fontWeight: 700, color: 'var(--cf-ink)', fontSize: 16 }}
+              >
+                Reduce motion
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--cf-ink-soft)',
+                  fontWeight: 500,
+                }}
+              >
+                Calmer celebration, one soft sparkle.
+              </div>
             </div>
           </div>
           <Switch
@@ -240,20 +260,30 @@ export default function SettingsSheet({
             borderTop: '2px solid rgba(90,70,51,0.12)',
           }}
         >
-          <div>
-            <div
-              style={{ fontWeight: 700, color: 'var(--cf-ink)', fontSize: 16 }}
-            >
-              Mascot voice
-            </div>
-            <div
-              style={{
-                fontSize: 12.5,
-                color: 'var(--cf-ink-soft)',
-                fontWeight: 500,
-              }}
-            >
-              Speaks the prompts and praise aloud.
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              color: 'var(--cf-ink)',
+            }}
+          >
+            <UiIcon name="voice" size={22} className="cf-settings-row-icon" />
+            <div>
+              <div
+                style={{ fontWeight: 700, color: 'var(--cf-ink)', fontSize: 16 }}
+              >
+                Mascot voice
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--cf-ink-soft)',
+                  fontWeight: 500,
+                }}
+              >
+                Speaks the prompts and praise aloud.
+              </div>
             </div>
           </div>
           <Switch
@@ -274,6 +304,7 @@ export default function SettingsSheet({
             borderRadius: 14,
           }}
         >
+          <UiIcon name="heart" size={20} className="cf-reassure-heart" />
           <div
             style={{
               fontSize: 11,
