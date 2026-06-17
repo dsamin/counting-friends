@@ -67,6 +67,31 @@ describe('loadPrefs', () => {
     expect(loadPrefs(DEFAULTS).reduceMotion).toBe(true);
   });
 
+  it('reduceMotion: cf_rm unset falls back to the provided default', () => {
+    // No reduceMotion default provided -> false (preserves prior behavior).
+    expect(loadPrefs(DEFAULTS).reduceMotion).toBe(false);
+    // Default true (e.g. OS prefers-reduced-motion) wins when cf_rm is unset.
+    expect(
+      loadPrefs({ ...DEFAULTS, reduceMotion: true }).reduceMotion,
+    ).toBe(true);
+    expect(
+      loadPrefs({ ...DEFAULTS, reduceMotion: false }).reduceMotion,
+    ).toBe(false);
+  });
+
+  it('reduceMotion: stored cf_rm overrides the default', () => {
+    // Stored "0" beats a true default.
+    localStorage.setItem('cf_rm', '0');
+    expect(
+      loadPrefs({ ...DEFAULTS, reduceMotion: true }).reduceMotion,
+    ).toBe(false);
+    // Stored "1" beats a false default.
+    localStorage.setItem('cf_rm', '1');
+    expect(
+      loadPrefs({ ...DEFAULTS, reduceMotion: false }).reduceMotion,
+    ).toBe(true);
+  });
+
   it('voiceOn: null falls back to default, "0" is false, "1" is true', () => {
     // absent -> default (true)
     expect(loadPrefs(DEFAULTS).voiceOn).toBe(true);

@@ -16,6 +16,33 @@
   user-select: none;
 }
 
+/* — Visually-hidden utility (screen-reader-only) ————————————————————
+   Standard clip-rect pattern: removed from the visual layout but still read by
+   assistive tech. Used for the live-region prompt announcement. */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* — Keyboard focus ring ————————————————————————————————————————————
+   Only for keyboard users (:focus-visible), never on touch/mouse. High-contrast
+   coral ring on a warm-ink offset so it reads on every cream/colored surface. */
+:focus-visible {
+  outline: 3px solid var(--cf-coral);
+  outline-offset: 3px;
+}
+/* Suppress the legacy outline for non-keyboard focus. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* — Scene background (reused on every screen) ———————————————————— */
 .cf-scene {
   position: absolute; inset: 0; z-index: 0;
@@ -126,7 +153,22 @@
 .cf-confetti { position: absolute; inset: 0; width: 100%; height: 100%;
                pointer-events: none; z-index: 15; }
 
-/* — Reduced motion: stop loops, keep entrances minimal ——————————— */
+/* — Reduced motion: stop loops, keep entrances minimal ——————————————
+   CSS-level safety net complementing the JS reduce-motion toggle. The animal
+   field applies pop/bob via inline `animation`, so `!important` is required to
+   override it. Neutralizes the heavy looping/entrance animations; the soundbar
+   pulse and the gentle press feedback are left intact (no looping motion). */
 @media (prefers-reduced-motion: reduce) {
-  .cf-animal--enter, .cf-animal--idle { animation: none; }
+  .cf-animal,
+  .cf-animal--enter,
+  .cf-animal--idle {
+    animation: none !important;
+  }
+  /* Any element driven by the looping float keyframe. */
+  [style*='cf-floaty'] {
+    animation: none !important;
+  }
+  .cf-number--correct {
+    animation: none !important;
+  }
 }

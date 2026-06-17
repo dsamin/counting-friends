@@ -106,4 +106,46 @@ describe('SettingsSheet', () => {
     await user.click(screen.getByRole('button', { name: /close settings/i }));
     expect(actions.closeSettings).toHaveBeenCalledTimes(1);
   });
+
+  it('exposes the overlay as a labelled modal dialog', () => {
+    render(<SettingsSheet state={baseState()} actions={spyActions()} />);
+    const dialog = screen.getByRole('dialog', { name: /for grown-ups/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
+
+  it('moves focus to the name input when opened', () => {
+    render(<SettingsSheet state={baseState()} actions={spyActions()} />);
+    expect(screen.getByPlaceholderText(/child's name/i)).toHaveFocus();
+  });
+
+  it('closes on Escape', async () => {
+    const actions = spyActions();
+    const user = userEvent.setup();
+    render(<SettingsSheet state={baseState()} actions={actions} />);
+    await user.keyboard('{Escape}');
+    expect(actions.closeSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('restores focus to the restore target when it closes', () => {
+    const actions = spyActions();
+    const restore = document.createElement('button');
+    document.body.appendChild(restore);
+    const restoreFocusRef = { current: restore };
+    const { rerender } = render(
+      <SettingsSheet
+        state={baseState({ settingsOpen: true })}
+        actions={actions}
+        restoreFocusRef={restoreFocusRef}
+      />,
+    );
+    rerender(
+      <SettingsSheet
+        state={baseState({ settingsOpen: false })}
+        actions={actions}
+        restoreFocusRef={restoreFocusRef}
+      />,
+    );
+    expect(restore).toHaveFocus();
+    document.body.removeChild(restore);
+  });
 });

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 
@@ -35,14 +37,79 @@ function Switch({ on, label, onToggle }: SwitchProps) {
 interface SettingsSheetProps {
   state: GameState;
   actions: GameActions;
+  /** Element to restore focus to when the sheet closes (the parental gate). */
+  restoreFocusRef?: RefObject<HTMLElement | null>;
 }
 
-export default function SettingsSheet({ state, actions }: SettingsSheetProps) {
-  if (!state.settingsOpen) return null;
+/** Focusable elements inside the sheet, in DOM order, for the focus trap. */
+function focusableIn(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((el) => !el.hasAttribute('disabled'));
+}
+
+export default function SettingsSheet({
+  state,
+  actions,
+  restoreFocusRef,
+}: SettingsSheetProps) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const open = state.settingsOpen;
+
+  // Move focus into the sheet on open; restore to the gate on close.
+  useEffect(() => {
+    if (!open) return;
+    inputRef.current?.focus();
+    const restoreTo = restoreFocusRef?.current ?? null;
+    return () => {
+      restoreTo?.focus();
+    };
+  }, [open, restoreFocusRef]);
+
+  // Trap Tab focus within the sheet and close on Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        actions.closeSettings();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const sheet = sheetRef.current;
+      if (!sheet) return;
+      const focusable = focusableIn(sheet);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !sheet.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !sheet.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, actions]);
+
+  if (!open) return null;
 
   return (
-    <div className="cf-overlay">
-      <div className="cf-sheet">
+    <div
+      className="cf-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="For grown-ups"
+    >
+      <div className="cf-sheet" ref={sheetRef}>
         <div
           style={{
             display: 'flex',
@@ -114,6 +181,7 @@ export default function SettingsSheet({ state, actions }: SettingsSheetProps) {
         </label>
         <input
           id="cf-child-name"
+          ref={inputRef}
           className="cf-input"
           value={state.childName}
           onChange={(e) => actions.setName(e.target.value)}

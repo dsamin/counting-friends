@@ -19,6 +19,17 @@ export interface UseGameOptions {
   voiceEnabled?: boolean;
 }
 
+/**
+ * Read the OS `prefers-reduced-motion` preference. SSR/old-browser safe:
+ * returns false when `window`/`matchMedia` are unavailable.
+ */
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export interface GameActions {
   pick(tier: Tier): void;
   choose(value: number): void;
@@ -56,6 +67,9 @@ export function useGame(options: UseGameOptions = {}): {
     const prefs = loadPrefs({
       tier: defaults.defaultTier,
       voiceEnabled: defaults.voiceEnabled,
+      // First-run default for the reduce-motion toggle: honor the OS
+      // `prefers-reduced-motion` preference. SSR/old-browser safe.
+      reduceMotion: prefersReducedMotion(),
     });
     return initialState(prefs, defaults);
   });

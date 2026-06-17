@@ -1,3 +1,5 @@
+import type { Ref } from 'react';
+
 /**
  * ParentalGate — a low-contrast dot bottom-right that must be pressed and held
  * for 3s (driven by the hook's RAF loop) to open settings. A coral ring fills
@@ -8,6 +10,8 @@ interface ParentalGateProps {
   gateProgress: number;
   gateDown: () => void;
   gateUp: () => void;
+  /** The gate button — focus is restored here when settings close. */
+  buttonRef?: Ref<HTMLButtonElement>;
 }
 
 const RING_RADIUS = 30;
@@ -17,11 +21,13 @@ export default function ParentalGate({
   gateProgress,
   gateDown,
   gateUp,
+  buttonRef,
 }: ParentalGateProps) {
   const dashoffset = RING_CIRCUMFERENCE * (1 - gateProgress);
 
   return (
     <button
+      ref={buttonRef}
       type="button"
       className="cf-gate"
       onPointerDown={gateDown}

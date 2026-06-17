@@ -41,14 +41,23 @@ export interface Prefs {
 export function loadPrefs(defaults: {
   tier: Tier;
   voiceEnabled: boolean;
+  /**
+   * Default reduce-motion when `cf_rm` is unset. Wire the OS
+   * `prefers-reduced-motion` media query here so a reduce-motion user gets
+   * calm defaults on first run. Defaults to false to preserve prior behavior.
+   */
+  reduceMotion?: boolean;
 }): Prefs {
   const storedTier = read(KEYS.tier);
   const storedVoice = read(KEYS.voice);
+  const storedRm = read(KEYS.reduceMotion);
 
   return {
     tier: isTier(storedTier) ? storedTier : defaults.tier,
     childName: read(KEYS.name) ?? '',
-    reduceMotion: read(KEYS.reduceMotion) === '1',
+    // Stored user choice ('1'/'0') always wins; otherwise the OS default.
+    reduceMotion:
+      storedRm == null ? (defaults.reduceMotion ?? false) : storedRm === '1',
     voiceOn: storedVoice == null ? defaults.voiceEnabled : storedVoice !== '0',
   };
 }

@@ -17,12 +17,35 @@ export default defineConfig({
         short_name: 'Counting',
         description:
           'A gentle, no-fail tap-to-count game for pre-readers. No ads, no data, works offline.',
+        lang: 'en',
+        dir: 'ltr',
+        categories: ['education', 'kids', 'games'],
         theme_color: '#FBF3DC',
         background_color: '#FBF3DC',
         display: 'standalone',
         orientation: 'any',
         start_url: base,
         scope: base,
+        screenshots: [
+          {
+            src: 'assets/marketing/frame-1.png',
+            sizes: '392x487',
+            type: 'image/png',
+            label: 'Tap your friends to count',
+          },
+          {
+            src: 'assets/marketing/frame-2.png',
+            sizes: '392x487',
+            type: 'image/png',
+            label: 'Every answer is a celebration',
+          },
+          {
+            src: 'assets/marketing/frame-3.png',
+            sizes: '392x487',
+            type: 'image/png',
+            label: 'No ads. No data. No fail.',
+          },
+        ],
         icons: [
           {
             src: 'icons/icon-192.png',

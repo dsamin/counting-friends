@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
-import { animalSize } from '../game/round';
+import { animalSize, promptLine } from '../game/round';
 import { TIMING } from '../game/constants';
 import CharacterSprite from '../components/CharacterSprite';
 import NumberButton from '../components/NumberButton';
@@ -29,6 +29,8 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
   const fieldRef = useRef<HTMLDivElement>(null);
   // Live map of number-button elements keyed by value, for the burst origin.
   const buttonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
+  // The parental gate button — settings restore focus here on close.
+  const gateButtonRef = useRef<HTMLButtonElement>(null);
 
   const size = animalSize(state.count);
   const isEasy = state.tier === 'easy';
@@ -66,6 +68,13 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
         flexDirection: 'column',
       }}
     >
+      {/* Live region: announces the current question as text to assistive tech
+          (VoiceOver) and deaf/HoH users, without adding visible child-facing
+          copy. Keyed on roundId so each new round re-announces. */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {state.count > 0 ? promptLine(state.animal) : ''}
+      </div>
+
       {/* Reserve the top chrome band. */}
       <div style={{ height: 96, flex: 'none' }} />
 
@@ -146,10 +155,15 @@ export default function PlayScreen({ state, actions }: PlayScreenProps) {
         gateProgress={state.gateProgress}
         gateDown={actions.gateDown}
         gateUp={actions.gateUp}
+        buttonRef={gateButtonRef}
       />
 
       {/* Settings overlay. */}
-      <SettingsSheet state={state} actions={actions} />
+      <SettingsSheet
+        state={state}
+        actions={actions}
+        restoreFocusRef={gateButtonRef}
+      />
     </div>
   );
 }
