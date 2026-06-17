@@ -13,7 +13,14 @@ export default function BackButton({ onBack }: BackButtonProps) {
       className="cf-chrome-btn"
       onClick={onBack}
       aria-label="Back to start"
-      style={{ position: 'absolute', top: 24, left: 26, zIndex: 6 }}
+      style={{
+        position: 'absolute',
+        // Respect the iPad safe area (notch-free, but status bar / rounded
+        // corners) while keeping the original offset as a floor.
+        top: 'max(24px, env(safe-area-inset-top))',
+        left: 'max(26px, env(safe-area-inset-left))',
+        zIndex: 6,
+      }}
     >
       <svg
         viewBox="0 0 24 24"

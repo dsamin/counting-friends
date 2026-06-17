@@ -19,7 +19,7 @@ export default function ReplayPill({ speaking, onReplay }: ReplayPillProps) {
       aria-label="Hear the question again"
       style={{
         position: 'absolute',
-        top: 22,
+        top: 'max(22px, env(safe-area-inset-top))',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 6,
