@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="index, follow" />
+    <title>Counting Friends — a calm counting toy for small hands</title>
+    <meta
+      name="description"
+      content="Counting Friends is a gentle, no-fail tap-to-count game for pre-readers (ages 3–5). No ads. No in-app purchases. No data collected. No way to fail. Works fully offline."
+    />
+    <meta property="og:title" content="Counting Friends" />
+    <meta
+      property="og:description"
+      content="A calm little counting toy for small hands. No ads. No data. No fail."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./assets/marketing/frame-3.png" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+
+    <style>
+      :root {
+        /* — Brand palette (from src/styles/tokens.css) — */
+        --duck: #ffc94d;
+        --duck-deep: #f4b73a;
+        --bill: #f0883c;
+        --coral: #ff8a7a;
+        --coral-deep: #ff6f5c;
+        --frog: #9fd9a3;
+        --sky: #a8d8e8;
+        --cream: #fbf3dc;
+        --cream-raised: #fffdf6;
+        --ink: #5a4633;
+        --ink-soft: #8a7a64;
+        --ink-faint: #a89a82;
+        --blush: #ffd2c7;
+
+        /* — Scene gradient — */
+        --sky-top: #bbe5f1;
+        --sky-bottom: #ddefec;
+        --ground: #c7e8b2;
+        --hill-a: #a6dca0;
+        --hill-b: #b7e2ae;
+
+        /* — Shape — */
+        --r-button: 34px;
+        --r-card: 28px;
+        --r-tile: 18px;
+        --r-pill: 999px;
+
+        /* — Elevation — */
+        --press: 0 8px 0 rgba(90, 70, 51, 0.16);
+        --press-coral: 0 8px 0 rgba(196, 90, 77, 0.32);
+        --card: 0 4px 16px rgba(90, 70, 51, 0.08);
+
+        /* — Type — */
+        --font-display: 'Baloo 2', ui-rounded, 'SF Pro Rounded', system-ui,
+          -apple-system, 'Segoe UI', sans-serif;
+        --font-body: ui-rounded, 'SF Pro Rounded', -apple-system,
+          BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 18px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      a {
+        color: #c25a4d;
+        text-underline-offset: 2px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        line-height: 1.12;
+        color: var(--ink);
+      }
+
+      .section {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 76px 24px;
+      }
+
+      .eyebrow {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin: 0 0 12px;
+      }
+
+      .lede {
+        font-size: 19px;
+        color: var(--ink-soft);
+        max-width: 56ch;
+      }
+
+      /* ——— Buttons ——————————————————————————————————————————— */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 18px;
+        text-decoration: none;
+        padding: 16px 28px;
+        border: 4px solid var(--ink);
+        border-radius: var(--r-button);
+        color: var(--ink);
+        background: var(--cream-raised);
+        box-shadow: var(--press);
+        transition:
+          transform 0.12s ease,
+          box-shadow 0.12s ease;
+        cursor: pointer;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 0 rgba(90, 70, 51, 0.16);
+      }
+      .btn:active {
+        transform: translateY(6px);
+        box-shadow: 0 2px 0 rgba(90, 70, 51, 0.16);
+      }
+      .btn-primary {
+        background: var(--duck);
+        box-shadow: var(--press);
+      }
+      .btn:focus-visible {
+        outline: 4px solid var(--coral);
+        outline-offset: 3px;
+      }
+
+      /* ——— Hero ——————————————————————————————————————————————— */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(
+          180deg,
+          var(--sky-top) 0%,
+          var(--sky-bottom) 52%,
+          var(--cream) 100%
+        );
+        border-bottom: 4px solid var(--ink);
+      }
+      /* Scene props — evoke the in-app meadow */
+      .scene {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .sun {
+        position: absolute;
+        top: 54px;
+        left: 7%;
+        width: 116px;
+        height: 116px;
+        border-radius: 50%;
+        background: var(--duck);
+        box-shadow: 0 0 0 22px rgba(255, 201, 77, 0.28);
+      }
+      .cloud {
+        position: absolute;
+        top: 72px;
+        right: 9%;
+        width: 150px;
+        height: 52px;
+        background: #fffdfa;
+        border-radius: 999px;
+        opacity: 0.92;
+      }
+      .cloud::before,
+      .cloud::after {
+        content: '';
+        position: absolute;
+        background: #fffdfa;
+        border-radius: 50%;
+      }
+      .cloud::before {
+        width: 64px;
+        height: 64px;
+        top: -28px;
+        left: 26px;
+      }
+      .cloud::after {
+        width: 46px;
+        height: 46px;
+        top: -18px;
+        left: 80px;
+      }
+      .hill {
+        position: absolute;
+        bottom: 0;
+        height: 220px;
+        border-radius: 50% 50% 0 0;
+      }
+      .hill-1 {
+        left: -8%;
+        width: 62%;
+        background: var(--hill-b);
+      }
+      .hill-2 {
+        right: -10%;
+        width: 66%;
+        background: var(--hill-a);
+      }
+      .ground {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 96px;
+        background: var(--ground);
+      }
+
+      .hero-inner {
+        position: relative;
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 92px 24px 124px;
+        text-align: center;
+      }
+      .wordmark {
+        width: min(440px, 82vw);
+        margin: 0 auto 30px;
+        filter: drop-shadow(0 4px 10px rgba(90, 70, 51, 0.12));
+      }
+      .hero h1 {
+        font-size: clamp(38px, 8vw, 68px);
+        margin: 0 0 18px;
+      }
+      .hero h1 .coral {
+        color: var(--coral-deep);
+      }
+      .hero-sub {
+        font-size: clamp(17px, 2.4vw, 21px);
+        color: var(--ink-soft);
+        max-width: 38ch;
+        margin: 0 auto 34px;
+        font-weight: 500;
+      }
+      .hero-cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: center;
+      }
+      .home-hint {
+        margin: 26px auto 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 253, 246, 0.7);
+        border: 2px solid rgba(90, 70, 51, 0.18);
+        border-radius: var(--r-pill);
+        padding: 8px 16px;
+        font-size: 14.5px;
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+
+      /* ——— Promises ——————————————————————————————————————————— */
+      .promises-head {
+        text-align: center;
+        margin-bottom: 44px;
+      }
+      .promises-head h2 {
+        font-size: clamp(28px, 5vw, 40px);
+        margin: 0 0 12px;
+      }
+      .grid {
+        display: grid;
+        gap: 20px;
+      }
+      .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .card {
+        background: var(--cream-raised);
+        border: 4px solid var(--ink);
+        border-radius: var(--r-card);
+        box-shadow: var(--press);
+        padding: 28px 24px;
+      }
+      .promise .badge {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        border: 3px solid var(--ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+      .promise h3 {
+        font-size: 21px;
+        margin: 0 0 6px;
+      }
+      .promise p {
+        margin: 0;
+        font-size: 16px;
+        color: var(--ink-soft);
+      }
+      .badge svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      /* ——— How it plays ——————————————————————————————————————— */
+      .alt {
+        background: var(--cream-raised);
+        border-top: 4px solid var(--ink);
+        border-bottom: 4px solid var(--ink);
+      }
+      .steps {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .step {
+        text-align: center;
+      }
+      .shot {
+        border: 4px solid var(--ink);
+        border-radius: var(--r-card);
+        box-shadow: var(--press);
+        overflow: hidden;
+        background: var(--sky-top);
+        margin-bottom: 20px;
+      }
+      .shot img {
+        width: 100%;
+        aspect-ratio: 683 / 512;
+        object-fit: cover;
+      }
+      .step-n {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--duck);
+        border: 3px solid var(--ink);
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .step h3 {
+        font-size: 22px;
+        margin: 0 0 6px;
+      }
+      .step p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 16px;
+      }
+
+      /* ——— Friends ——————————————————————————————————————————— */
+      .friends {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .friend {
+        text-align: center;
+        background: var(--cream-raised);
+        border: 4px solid var(--ink);
+        border-radius: var(--r-card);
+        box-shadow: var(--press);
+        padding: 26px 18px 24px;
+      }
+      .friend .ring {
+        width: 116px;
+        height: 116px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        border: 3px solid var(--ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .friend .ring img {
+        width: 78px;
+        height: 78px;
+        object-fit: contain;
+      }
+      .friend h3 {
+        font-size: 20px;
+        margin: 0 0 2px;
+      }
+      .friend .sound {
+        display: inline-block;
+        margin-top: 8px;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--ink);
+        background: var(--cream);
+        border: 2px solid var(--ink);
+        border-radius: var(--r-pill);
+        padding: 4px 14px;
+      }
+      .ring-duck {
+        background: #fff3d2;
+      }
+      .ring-cat {
+        background: #ffe2dc;
+      }
+      .ring-frog {
+        background: #e2f4e0;
+      }
+      .ring-bunny {
+        background: #def0f6;
+      }
+
+      /* ——— Tiers ——————————————————————————————————————————————— */
+      .tiers {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tier {
+        text-align: center;
+        background: var(--cream-raised);
+        border: 4px solid var(--ink);
+        border-radius: var(--r-card);
+        box-shadow: var(--press);
+        padding: 30px 22px;
+      }
+      .tier .range {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 40px;
+        line-height: 1;
+        margin: 0 0 10px;
+      }
+      .tier .dots {
+        font-size: 0;
+        margin-bottom: 14px;
+      }
+      .tier .dots i {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--coral);
+        border: 2px solid var(--ink);
+        margin: 0 3px;
+      }
+      .tier h3 {
+        font-size: 19px;
+        margin: 0 0 4px;
+      }
+      .tier p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 15.5px;
+      }
+
+      /* ——— Trust ——————————————————————————————————————————————— */
+      .trust-inner {
+        background: var(--cream-raised);
+        border: 4px solid var(--ink);
+        border-radius: var(--r-card);
+        box-shadow: var(--press);
+        padding: 44px clamp(24px, 5vw, 56px);
+      }
+      .trust-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px 48px;
+        margin-top: 8px;
+      }
+      .trust-grid h3 {
+        font-size: 19px;
+        margin: 0 0 6px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .trust-grid p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 16px;
+      }
+      .check {
+        flex: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--frog);
+        border: 2.5px solid var(--ink);
+      }
+      .trust-foot {
+        margin-top: 34px;
+        text-align: center;
+      }
+
+      /* ——— Footer ——————————————————————————————————————————————— */
+      footer {
+        background: var(--cream);
+        border-top: 4px solid var(--ink);
+        text-align: center;
+        padding: 48px 24px 56px;
+      }
+      footer .mark {
+        width: 64px;
+        margin: 0 auto 16px;
+      }
+      footer p {
+        margin: 0 0 14px;
+        color: var(--ink-soft);
+      }
+      .footer-links {
+        list-style: none;
+        margin: 0 0 18px;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        justify-content: center;
+      }
+      .footer-links a {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .footer-links a:hover {
+        text-decoration: underline;
+      }
+      .copyright {
+        font-size: 14.5px;
+        color: var(--ink-faint);
+      }
+
+      /* ——— Responsive ————————————————————————————————————————— */
+      @media (max-width: 900px) {
+        .grid-4,
+        .friends {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .steps,
+        .tiers {
+          grid-template-columns: 1fr;
+          max-width: 460px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .trust-grid {
+          grid-template-columns: 1fr;
+          gap: 22px;
+        }
+      }
+      @media (max-width: 560px) {
+        body {
+          font-size: 17px;
+        }
+        .section {
+          padding: 56px 18px;
+        }
+        .hero-inner {
+          padding: 64px 18px 88px;
+        }
+        .grid-4 {
+          grid-template-columns: 1fr;
+          max-width: 420px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .sun {
+          width: 78px;
+          height: 78px;
+          top: 30px;
+          box-shadow: 0 0 0 14px rgba(255, 201, 77, 0.28);
+        }
+        .cloud {
+          width: 96px;
+          top: 40px;
+        }
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .btn {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============================= HERO ============================= -->
+    <header class="hero">
+      <div class="scene" aria-hidden="true">
+        <div class="sun"></div>
+        <div class="cloud"></div>
+        <div class="hill hill-1"></div>
+        <div class="hill hill-2"></div>
+        <div class="ground"></div>
+      </div>
+      <div class="hero-inner">
+        <img
+          class="wordmark"
+          src="./assets/logo/wordmark-light.png"
+          alt="Counting Friends"
+          width="440"
+          height="86"
+        />
+        <h1>No ads. No data.<br /><span class="coral">No fail.</span></h1>
+        <p class="hero-sub">
+          A calm little counting toy for small hands — just tap the friends and
+          count. Nothing to buy, nothing to lose.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="./">Play now →</a>
+          <a class="btn" href="#privacy">How we protect your child</a>
+        </div>
+        <p class="home-hint">
+          <span aria-hidden="true">📱</span> Add to your iPad's Home Screen for
+          the full-screen, offline toy
+        </p>
+      </div>
+    </header>
+
+    <main>
+      <!-- ======================= FOUR PROMISES ======================= -->
+      <section class="section" aria-labelledby="promises-title">
+        <div class="promises-head">
+          <p class="eyebrow">A toy you can trust</p>
+          <h2 id="promises-title">Four promises we keep</h2>
+          <p class="lede" style="margin: 0 auto">
+            The whole app is built around what it
+            <em>won't</em> do to your child.
+          </p>
+        </div>
+        <div class="grid grid-4">
+          <div class="card promise">
+            <div class="badge" style="background: var(--coral)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5a4633" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M5.5 5.5l13 13" />
+              </svg>
+            </div>
+            <h3>No ads</h3>
+            <p>Not one banner, pop-up, or “watch a video.” Nothing competes for your child's attention.</p>
+          </div>
+          <div class="card promise">
+            <div class="badge" style="background: var(--duck)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5a4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-4.3-9.2-9C1.3 9 2.6 5.5 6 5.5c2 0 3.2 1.4 3.9 2.4C10.6 7 11.9 5.5 14 5.5c2.2 0 4 1.8 4 4 0 .9-.2 1.7-.5 2.4" />
+                <path d="M5.5 5.5l13 13" />
+              </svg>
+            </div>
+            <h3>No in-app purchases</h3>
+            <p>No store, no “unlock,” no surprise charges. Everything is here, free, forever.</p>
+          </div>
+          <div class="card promise">
+            <div class="badge" style="background: var(--sky)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5a4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3l8 3v5c0 4.4-3 7.8-8 10-5-2.2-8-5.6-8-10V6l8-3z" />
+                <path d="M9 11.5l2 2 4-4" />
+              </svg>
+            </div>
+            <h3>No data collected</h3>
+            <p>No accounts, no analytics, no trackers. It works fully offline and sends nothing, ever.</p>
+          </div>
+          <div class="card promise">
+            <div class="badge" style="background: var(--frog)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5a4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M8 13s1.4 2 4 2 4-2 4-2" />
+                <circle cx="9" cy="10" r="0.6" fill="#5a4633" />
+                <circle cx="15" cy="10" r="0.6" fill="#5a4633" />
+              </svg>
+            </div>
+            <h3>No way to fail</h3>
+            <p>Wrong taps just wobble and wait. Every right answer is a little celebration.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= HOW IT PLAYS ======================== -->
+      <section class="alt" aria-labelledby="play-title">
+        <div class="section">
+          <div class="promises-head">
+            <p class="eyebrow">So simple a 3-year-old just plays</p>
+            <h2 id="play-title">How it plays</h2>
+          </div>
+          <div class="grid steps">
+            <div class="step">
+              <div class="shot">
+                <img
+                  src="./screenshots/01-start.png"
+                  alt="The start screen: pick one of three duck cards to begin counting."
+                  width="683"
+                  height="512"
+                  loading="lazy"
+                />
+              </div>
+              <span class="step-n">1</span>
+              <h3>Pick a friend</h3>
+              <p>Tap a card to choose a friend and start a round.</p>
+            </div>
+            <div class="step">
+              <div class="shot">
+                <img
+                  src="./screenshots/02-counting.png"
+                  alt="Counting screen: five coral cats in a meadow with number buttons to tap below."
+                  width="683"
+                  height="512"
+                  loading="lazy"
+                />
+              </div>
+              <span class="step-n">2</span>
+              <h3>Count the friends</h3>
+              <p>A friendly voice asks “How many?” Tap the number you count.</p>
+            </div>
+            <div class="step">
+              <div class="shot">
+                <img
+                  src="./screenshots/03-celebration.png"
+                  alt="A correct answer turns into a burst of confetti — every win is celebrated."
+                  width="683"
+                  height="512"
+                  loading="lazy"
+                />
+              </div>
+              <span class="step-n">3</span>
+              <h3>Celebrate every win</h3>
+              <p>Right answers burst into gentle confetti and warm praise.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= MEET THE FRIENDS ==================== -->
+      <section class="section" aria-labelledby="friends-title">
+        <div class="promises-head">
+          <p class="eyebrow">A cast of four</p>
+          <h2 id="friends-title">Meet the friends</h2>
+          <p class="lede" style="margin: 0 auto">
+            Each one has a name and a sound your child will love to make.
+          </p>
+        </div>
+        <div class="grid friends">
+          <div class="friend">
+            <div class="ring ring-duck">
+              <img src="./assets/characters/png/duck.png" alt="Dot, a round yellow duck." width="78" height="78" loading="lazy" />
+            </div>
+            <h3>Dot the duck</h3>
+            <span class="sound">Quack!</span>
+          </div>
+          <div class="friend">
+            <div class="ring ring-cat">
+              <img src="./assets/characters/png/cat.png" alt="Pip, a coral cat with whiskers." width="78" height="78" loading="lazy" />
+            </div>
+            <h3>Pip the cat</h3>
+            <span class="sound">Meow!</span>
+          </div>
+          <div class="friend">
+            <div class="ring ring-frog">
+              <img src="./assets/characters/png/frog.png" alt="Hopper, a mint-green frog." width="78" height="78" loading="lazy" />
+            </div>
+            <h3>Hopper the frog</h3>
+            <span class="sound">Ribbit!</span>
+          </div>
+          <div class="friend">
+            <div class="ring ring-bunny">
+              <img src="./assets/characters/png/bunny.png" alt="Momo, a soft blue bunny." width="78" height="78" loading="lazy" />
+            </div>
+            <h3>Momo the bunny</h3>
+            <span class="sound">Boing!</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= GROWS WITH CHILD =================== -->
+      <section class="alt" aria-labelledby="grows-title">
+        <div class="section">
+          <div class="promises-head">
+            <p class="eyebrow">One toy, a few good years</p>
+            <h2 id="grows-title">Grows with your child</h2>
+            <p class="lede" style="margin: 0 auto">
+              Three gentle levels you choose for them — no pressure, no scores.
+            </p>
+          </div>
+          <div class="grid tiers">
+            <div class="tier">
+              <p class="range">1–5</p>
+              <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+              <h3>First counts</h3>
+              <p>Just a few friends at a time, for the very first counters.</p>
+            </div>
+            <div class="tier">
+              <p class="range">1–10</p>
+              <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+              <h3>Getting confident</h3>
+              <p>A bigger meadow to count as numbers start to click.</p>
+            </div>
+            <div class="tier">
+              <p class="range">1–20</p>
+              <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <h3>Counting champ</h3>
+              <p>The full crowd, for children ready to count higher.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= TRUST / PRIVACY ===================== -->
+      <section class="section" id="privacy" aria-labelledby="trust-title">
+        <div class="trust-inner">
+          <div class="promises-head" style="margin-bottom: 22px">
+            <p class="eyebrow">Built to be trusted</p>
+            <h2 id="trust-title">How we protect your child</h2>
+            <p class="lede" style="margin: 0 auto">
+              Counting Friends is private by design — there is simply nothing to
+              collect.
+            </p>
+          </div>
+          <div class="trust-grid">
+            <div>
+              <h3><span class="check" aria-hidden="true"></span>Works fully offline</h3>
+              <p>Once it loads, the app makes no network requests. There is no back end for it to talk to.</p>
+            </div>
+            <div>
+              <h3><span class="check" aria-hidden="true"></span>Only local preferences</h3>
+              <p>It remembers your level, voice, and reduce-motion choices on this device — and nothing else.</p>
+            </div>
+            <div>
+              <h3><span class="check" aria-hidden="true"></span>No tracking, ever</h3>
+              <p>No accounts, no analytics, no advertising SDKs, no trackers of any kind.</p>
+            </div>
+            <div>
+              <h3><span class="check" aria-hidden="true"></span>Made for accessibility</h3>
+              <p>Big tap targets, a reduce-motion mode, VoiceOver-friendly labels, and a calm, low-stimulation scene.</p>
+            </div>
+          </div>
+          <div class="trust-foot">
+            <a class="btn" href="./privacy.html">Read the full Privacy Policy</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================= FOOTER ========================== -->
+    <footer>
+      <img class="mark" src="./assets/logo/mark.svg" alt="Counting Friends duck badge" width="64" height="64" />
+      <p>Made with care for small humans.</p>
+      <ul class="footer-links">
+        <li><a href="./">Play</a></li>
+        <li><a href="./privacy.html">Privacy</a></li>
+      </ul>
+      <p class="copyright">© 2026 Devan. All rights reserved.</p>
+    </footer>
+  </body>
+</html>
