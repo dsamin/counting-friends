@@ -1,3 +1,22 @@
+# Counting Friends — Native iPad App (Capacitor) — 2026-06-17
+
+> Goal: a genuine native iPadOS app (Capacitor wrapper of the existing PWA) that **builds and
+> runs on the iPad Simulator**, with the web PWA preserved (zero regression). Store submission
+> deferred. Full design spec: `docs/superpowers/specs/2026-06-17-ipad-capacitor-app-design.md`.
+
+- [ ] **Phase 0 — Toolchain:** install CocoaPods (brew); confirm target iPad simulator boots.
+- [ ] **Phase 1 — Native-safe dual build:** gate vite-plugin-pwa behind `CAP_BUILD`; add `build:native` (base `/`, SW off); web build + all tests still green.
+- [ ] **Phase 2 — Capacitor scaffold:** install Capacitor 7 + plugins; `capacitor.config.ts`; `cap add ios`; `.gitignore` native artifacts; `cap sync` clean.
+- [ ] **Phase 3 — Native UX:** safe-area insets; lock overscroll; splash + status bar; app icon set from master.
+- [ ] **Phase 4 — Native capabilities:** haptics on celebrate (guarded); WKWebView audio/TTS probe + native fallback.
+- [ ] **Phase 5 — Build/run/verify on iPad Simulator:** 10-point functional smoke + screenshots; full web regression suite green.
+- [ ] **Phase 6 — Docs + handoff:** `docs/IPAD-APP.md`; note deferred store path; update memory.
+
+### Review (filled in as phases complete)
+_(pending)_
+
+---
+
 # Counting Friends — Build-to-Launch Plan
 
 > Goal: take the designed prototype to a **runnable, tested, deployed, launch-ready** product,
