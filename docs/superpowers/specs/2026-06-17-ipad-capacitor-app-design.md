@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-17
 **Author:** Devan
-**Status:** Draft → under agent review
+**Status:** Reviewed (3 independent agents, all GO-WITH-FIXES) → corrections folded in §13 → approved for implementation
 **Branch:** `feat/ipad-capacitor`
 
 ---
@@ -107,7 +107,7 @@ a small, well‑documented step.
 | R3 | **CocoaPods missing.** | `brew install cocoapods`; verify `pod --version`. | 0 |
 | R4 | **WKWebView `speechSynthesis`** historically flaky on iOS web views. | Runtime probe; fall back to `@capacitor-community/text-to-speech` behind `AudioEngine`. SFX (WebAudio) verified to resume after first touch gesture. | 4/5 |
 | R5 | **Safe areas** — top‑left Back button / bottom‑right parental gate clipped by rounded corners / home indicator. | `env(safe-area-inset-*)` padding on app chrome; `viewport-fit=cover` already present. | 3 |
-| R6 | **Rubber‑band scroll / overscroll** in WKWebView breaks the fixed full‑screen feel. | Lock body scroll (`overflow:hidden`, `overscroll-behavior:none`), Capacitor `ios.scrollEnabled:false`. | 3 |
+| R6 | **Rubber‑band scroll / overscroll** in WKWebView breaks the fixed full‑screen feel. | CSS only: lock body scroll (`overflow:hidden`, `overscroll-behavior:none`, `position:fixed`). NOTE: `ios.scrollEnabled` is **not** a valid Capacitor 7 config key — do not use it. | 3 |
 | R7 | **Node 25 / npm 11 very new** — possible Capacitor engine warnings. | Pin Capacitor 7.x; treat warnings as non‑fatal; confirm `cap` CLI runs. | 2 |
 | R8 | **Audio autoplay policy** — no sound before first gesture. | Existing design already gates audio behind taps; confirm in simulator. | 5 |
 | R9 | **`ios/` artifacts bloat git** (Pods, build/). | `.gitignore` Pods/, build/, DerivedData; commit the project + Podfile. | 2 |
@@ -117,52 +117,52 @@ a small, well‑documented step.
 Each phase ends with explicit, checkable **acceptance criteria** and a commit.
 
 ### Phase 0 — Toolchain & decisions
-- Install CocoaPods via Homebrew; verify `pod --version`.
+- Install CocoaPods via Homebrew (`brew install cocoapods` — bottled 1.16.x, brings its own Ruby, does **not** touch system Ruby 2.6.10, no source compile). Ensure `/opt/homebrew/bin` is on PATH (`which pod`).
 - Confirm a target iPad simulator UDID (e.g., *iPad Pro 11" (M4)*).
-- Record bundle id / app name / min iOS (target **iOS 16+**, matching Capacitor 7 floor).
-- **Acceptance:** `pod --version` prints a version; chosen simulator boots (`simctl boot` + `simctl list | grep Booted`).
+- Record bundle id (`app.countingfriends.game`) / app name. Deployment target: Capacitor 7 floor is **iOS 14**; we pin Podfile `platform :ios, '16.0'` explicitly (don't assert 16 is "the floor").
+- **Acceptance:** `pod --version` prints **≥ 1.16** (older 1.15.x mis-parses Xcode 16+/26 `.pbxproj`); `which pod` resolves; chosen simulator boots (`simctl boot` + `simctl list | grep Booted`).
 
 ### Phase 1 — Native‑safe dual build
 - `vite.config.ts`: gate `VitePWA(...)` behind `process.env.CAP_BUILD !== '1'`; base already env‑driven.
-- `package.json`: add `"build:native": "CAP_BUILD=1 VITE_BASE=/ tsc --noEmit && CAP_BUILD=1 VITE_BASE=/ vite build"` (mirror the typecheck+build of `build`).
-- **Acceptance:** `npm run build` → `dist/index.html` references `/counting-friends/…` and emits a service worker. `npm run build:native` → `dist/index.html` references root‑relative `/…` assets and emits **no** `sw.js`/`registerSW.js`. Existing `npm run test`, `npm run typecheck`, `npm run lint` still green.
+- Add `cross-env` devDep; `package.json`: `"build:native": "cross-env CAP_BUILD=1 VITE_BASE=/ npm run build"` (reuses `build`, can't drift, cross-shell safe).
+- **Acceptance:** `npm run build` → `dist/index.html` references `/counting-friends/…` and emits a service worker. `npm run build:native` → `dist/index.html` references root‑relative `/…` assets and emits **no** `sw.js`/`registerSW.js`. Plus two grep gates on the native `dist/`: `grep -rn "counting-friends" dist/` returns nothing, and `grep -rn "serviceWorker.register\|registerSW\|workbox" dist/` returns nothing. Existing `npm run test`, `npm run typecheck`, `npm run lint` still green.
 
 ### Phase 2 — Capacitor scaffolding
-- Install `@capacitor/core @capacitor/cli @capacitor/ios` (v7.x) + plugins `@capacitor/splash-screen @capacitor/status-bar @capacitor/haptics @capacitor/app`.
-- `capacitor.config.ts` (appId, appName, webDir=dist, ios backgroundColor, server hostname defaults, SplashScreen/StatusBar plugin config).
-- `npx cap add ios` (runs `pod install`).
-- `.gitignore`: add `ios/App/Pods/`, `ios/App/App/public/`, `ios/App/build/`, `ios/DerivedData/`, `*.xcworkspace/xcuserdata/`.
-- **Acceptance:** `ios/App/App.xcworkspace` exists; `npm run build:native && npx cap sync ios` completes without error; `ios/App/App/public/` contains the built web app.
+- Install (all `@capacitor/*` pinned to one 7.x minor; `@capacitor/cli` is a **devDep**, the rest are deps): `npm i @capacitor/core @capacitor/ios @capacitor/splash-screen @capacitor/status-bar @capacitor/haptics @capacitor/app` and `npm i -D @capacitor/cli`. Expect non-fatal `EBADENGINE` warnings under Node 25 — ignore.
+- `capacitor.config.ts` (appId `app.countingfriends.game`, appName, webDir=`dist`, ios `backgroundColor:#FBF3DC`, SplashScreen/StatusBar plugin config). **Leave `server` unset** (default `capacitor://localhost` — correct for an offline bundled app; do NOT set `server.url`).
+- `npx cap add ios` (runs `pod install`). Pin Podfile `platform :ios, '16.0'`.
+- `.gitignore`: add `ios/App/Pods/`, `ios/App/App/public/`, `ios/App/App/capacitor.config.json` (generated on sync), `ios/App/build/`, `ios/DerivedData/`, `**/xcuserdata/`. Commit `Podfile` **and** `Podfile.lock`.
+- **Acceptance:** `ios/App/App.xcworkspace` exists; `npx cap doctor` reports no `@capacitor/*` version skew; `npm run build:native && npx cap sync ios` completes; `ios/App/App/public/` contains the built web app.
 
 ### Phase 3 — Native UX integration
-- Safe areas: add `env(safe-area-inset-*)` padding to the app chrome containers (Back button cluster top‑left; parental gate dot bottom‑right) in `app.css`; verify via simulator both orientations.
-- Lock scroll/overscroll (`index.css` body rules; `capacitor.config.ts` `ios.scrollEnabled:false`).
+- Safe areas (per-element, NOT a single container — `PlayScreen` root is `position:absolute; inset:0` and escapes parent padding): apply `env(safe-area-inset-*)` to each absolutely-positioned chrome element. **Back button** offsets are inline in `BackButton.tsx` (`top:24,left:26`) and **ReplayPill** inline in `ReplayPill.tsx` (`top:22,left:50%`) → edit those inline styles to `max(<n>px, env(safe-area-inset-top))`. **Parental gate** is `.cf-gate` in `app.css` (`bottom:22,right:22`) → edit there. Verify both orientations in simulator.
+- Lock scroll/overscroll via CSS only (`index.css` body: `overflow:hidden`, `overscroll-behavior:none`, `position:fixed`). `index.css` already has `overscroll-behavior:none` + `touch-action:manipulation`.
 - Status bar: hide for immersive full‑screen kids UX (`StatusBar.hide()` on native at boot) — or style to match cream; decide after first simulator render.
 - Splash: configure branded splash from `assets/launch/`; `SplashScreen.hide()` once React mounts.
-- App icon + splash asset generation: `@capacitor/assets generate --ios` from `assets/app-icon/` master (+ a splash source). Falls back to manual `AppIcon.appiconset` if the tool misbehaves.
+- App icon + splash assets (OFF the critical path — `@capacitor/assets` shells out to sharp/sips and is the most Node-25-fragile step; nice-to-have, not load-bearing for "builds and runs"): try `npx @capacitor/assets generate --ios` with a `resources/icon.png` (≥1024²) + `resources/splash.png` (2732²) sourced from `assets/app-icon/`+`assets/launch/`. If it chokes, drop in a minimal `AppIcon.appiconset` manually and move on — do not let icon polish gate the phase.
 - **Acceptance:** In the iPad simulator, no UI element is clipped by safe areas in portrait or landscape; the app launches to a branded splash that dismisses to the Start screen; the home‑screen icon is the Counting Friends mark (not the Capacitor default).
 
 ### Phase 4 — Native capability plugins
-- **Haptics:** add `src/native/feedback.ts` exposing `celebrate()` / `tap()` guarded by `Capacitor.isNativePlatform()`; wire `celebrate()` to the existing correct‑answer celebration path (alongside confetti) and `tap()` (light) to a correct selection. Respect the existing reduce‑motion / settings posture (no haptics if motion reduced). Web = no‑op.
-- **Audio probe:** at boot, probe `speechSynthesis` voice availability in WKWebView. If empty/unreliable, route TTS through a `CapacitorTtsEngine` adapter implementing `AudioEngine`. SFX stay on WebAudio; confirm `AudioContext` resumes on first touch.
-- **Acceptance:** Correct answer triggers a haptic on device/simulator‑reported capability; voice prompt and praise are audible in the simulator (via Web Speech or native TTS fallback); SFX play after first tap. Web build unaffected (vitest green).
+- **Haptics:** add `src/native/feedback.ts` exposing `celebrate()` / `tap()` guarded by `Capacitor.isNativePlatform()`. Wire `celebrate()` into the confetti `useEffect` in `PlayScreen.tsx:~69` (keyed on `status==='correct'`, fires once per round, and `reduceMotion` is already in scope → respects reduce-motion for free). Wire `tap()` (light) into `actions.tapAnimal` (`PlayScreen.tsx:~129`). No reducer/round-logic edits. Web = no‑op.
+- **Audio probe + native TTS adapter (likely REQUIRED, not optional):** probe after the `voiceschanged` event (with timeout) — `getVoices()` is async and often empty on first synchronous call in WKWebView. Deterministic rule: `isNativePlatform() && getVoices().length === 0` → use native TTS. The adapter `src/native/capacitorTtsEngine.ts` is a **composite**, not a rewrite: native `speak()` wraps `@capacitor-community/text-to-speech` (swallow its Promise; call `onSpeakingChange(true)` before the await and `(false)` after — this drives the visible ReplayPill animation), `cancelSpeech()`→`stop()`, implement `setEnabled()`, and **delegate `ensureAudio/playPop/playWhoops/playChirp` to the existing `createWebAudioEngine()`**. Swap it in at the single instantiation site (`App.tsx:19`) behind the probe. Confirm `AudioContext.resume()` is called from the first touch handler.
+- **Acceptance (observable proxies — an agent has no ears):** Correct answer triggers haptics on native. For voice, evidence is: (a) a logged voice-count probe, (b) the **ReplayPill speaking animation (`cf-replay--speaking`) visible in a screenshot** = proxy for "speech started", (c) `AudioContext.state === 'running'` logged after a tap. Final "does it sound right" is an explicit **human spot-check on the owner's machine**, not an agent deliverable. Web build unaffected (vitest green).
 
 ### Phase 5 — Build, run & verify (testing)
-- Full native pipeline: `npm run build:native && npx cap sync ios && xcodebuild` (or `npx cap run ios --target <UDID>`) → install + launch on the iPad simulator.
-- **Functional smoke checklist** (manual‑equivalent, evidence captured):
-  1. App boots — no white screen, no console errors.
-  2. Start screen renders all three tiers.
-  3. Enter a tier → animals render at correct size/count.
-  4. Tap an animal → animal sound + chirp.
-  5. Tap correct number → confetti + praise + haptic + auto‑advance.
-  6. Tap wrong number → wobble + whoops + reask (no penalty).
-  7. Parental gate: hold 3s → settings open; release early resets.
-  8. Settings: name, voice toggle, reduce‑motion toggle persist (UserDefaults via WKWebView localStorage).
-  9. Rotate portrait↔landscape → layout reflows, no clipping.
-  10. Relaunch → last tier / settings restored.
-- Capture simulator screenshots (`simctl io … screenshot`) as evidence.
+- Full native pipeline: `npm run build:native && npx cap sync ios`, then **primary** launch `npx cap run ios --target <UDID>` (handles destination + signing friction). **Fallback** (more reliable headless): `xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M4)' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath ios/DerivedData build` → then `xcrun simctl install booted <App.app>` → `xcrun simctl launch booted app.countingfriends.game`. (Raw `xcodebuild` does NOT install/launch by itself, and WILL try to sign unless `CODE_SIGNING_ALLOWED=NO`.) First build is slow (minutes) + first 26.3 sim boot is cold — use long Bash timeouts, don't read as hang.
+- **Functional smoke checklist** — each tagged by what evidence is honestly obtainable. `[SS]`=screenshot-verifiable, `[LOG]`=console/JS-probe-verifiable, `[HUMAN]`=owner spot-check (logic already covered by web e2e):
+  1. `[SS]` App boots — no white screen (this is the key proof the base-path/SW fix worked). `[LOG]` no console errors.
+  2. `[SS]` Start screen renders all three tiers.
+  3. `[SS]` Enter a tier → animals render at correct size/count.
+  4. `[HUMAN]` animal sound on tap (no ears); `[LOG]` AudioContext running + chirp invoked.
+  5. `[SS]` confetti + `[SS]` ReplayPill speaking-animation + auto-advance; `[HUMAN]` praise audio; haptic verified by capability flag.
+  6. `[SS]` wrong number → wobble + reask, count unchanged (no penalty); `[HUMAN]` whoops sound.
+  7. `[HUMAN]`/web-e2e parental gate hold-3s (sustained-press not cleanly drivable via simctl); DOM logic already covered by Playwright e2e.
+  8. `[SS]` Settings open; toggles persist across relaunch (WKWebView localStorage, NOT UserDefaults).
+  9. `[SS]` Rotate portrait↔landscape → reflow, no safe-area clipping (before/after screenshots).
+  10. `[SS]` Relaunch → last tier / settings restored.
+- Capture simulator screenshots (`xcrun simctl io booted screenshot <file>.png`) for every `[SS]` item as evidence.
 - **Regression gate:** `npm run typecheck && npm run lint && npm run test && npm run build && npm run e2e` all green (web untouched).
-- **Acceptance:** All 10 checklist items pass with screenshot evidence; full web regression suite green.
+- **Acceptance:** all `[SS]`/`[LOG]` items verified with evidence; `[HUMAN]` items called out as owner spot-checks (not claimed as agent-verified); full web regression suite green. No overpromise of "audible".
 
 ### Phase 6 — Docs & publish‑readiness handoff
 - `docs/IPAD-APP.md`: how to build/run native (`build:native` → `cap sync` → run), architecture, the base‑path/SW/safe‑area gotchas, plugin inventory, simulator UDIDs.
@@ -196,5 +196,48 @@ Each phase ends with explicit, checkable **acceptance criteria** and a commit.
 ## 12. Open questions
 
 None blocking. Two judgment calls are deferred to first simulator render (decided then,
-not now): (a) **hide vs. style** the status bar, (b) **Web Speech vs. native TTS** —
-both have working fallbacks specified above.
+not now): (a) status bar — **default to `StatusBar.hide()`** and move on (don't burn a
+round-trip deliberating), (b) **Web Speech vs. native TTS** — decided by the boot probe;
+native adapter is now treated as *probably required*, not a footnote.
+
+---
+
+## 13. Review feedback incorporated (3 independent agents, 2026-06-17)
+
+All three reviewers (iOS/Capacitor specialist, architecture/codebase-fit, skeptic/risk)
+returned **GO-WITH-FIXES** with strongly converging notes. Corrections folded into the
+sections above; the substantive deltas:
+
+1. **`build:native` script** → `cross-env CAP_BUILD=1 VITE_BASE=/ npm run build` (reuses
+   `build`, portable). Added `cross-env` devDep. (§8 P1)
+2. **Native-build verification hardened** → grep `dist/` for leftover `counting-friends`
+   base and for any surviving `serviceWorker.register`/`workbox`/`registerSW`. (§8 P1)
+3. **`ios.scrollEnabled` is NOT a real Capacitor 7 key** → removed; CSS-only scroll lock. (§7 R6, §8 P3)
+4. **CocoaPods de-risked** → `brew install cocoapods` is bottled 1.16.x with its own Ruby
+   (no system-Ruby/source-compile risk); verify `pod --version ≥ 1.16` + PATH. SPM rejected
+   (more fragile on brand-new Xcode). (§5, §8 P0)
+5. **Audio verification honesty (biggest fix)** → an agent has no ears; "audible"
+   acceptance replaced with observable proxies (voice-count probe, the visible ReplayPill
+   speaking-animation in a screenshot, `AudioContext.state==='running'`). Real sound is an
+   explicit human spot-check. (§8 P4/P5)
+6. **Native TTS adapter is likely REQUIRED and is a composite**, not a rewrite: native
+   `speak`/`stop` + synthesized `onSpeakingChange` (drives ReplayPill) + `setEnabled`, while
+   SFX delegate to the existing `createWebAudioEngine()`. Probe waits for `voiceschanged`.
+   Lives in `src/native/capacitorTtsEngine.ts`; swapped at `App.tsx:19`. (§6, §8 P4)
+7. **Safe-area insets are per-element** — Back button & ReplayPill are inline-positioned
+   in their `.tsx`; `.cf-gate` is in `app.css`; `PlayScreen` root is `position:absolute;
+   inset:0` and escapes container padding. Each absolute chrome element gets its own
+   `env()` offset. (§8 P3)
+8. **Haptics hook point pinned** to `PlayScreen.tsx:~69` (confetti effect, reduce-motion in
+   scope) + `tap()` on `actions.tapAnimal`. (§8 P4)
+9. **Launch sequence corrected** → `npx cap run ios` primary; `xcodebuild`+`simctl
+   install`+`simctl launch` with `CODE_SIGNING_ALLOWED=NO` as the explicit fallback
+   (raw `xcodebuild` neither installs/launches nor skips signing on its own). Long timeouts
+   for first build/sim boot. (§8 P5)
+10. **`@capacitor/assets` moved off the critical path** (Node-25-fragile); manual
+    `.appiconset` fallback; icon polish must not gate Phase 3. (§8 P3)
+11. **Native seams consolidated under `src/native/`** — `feedback.ts`, `bootNative.ts`
+    (keeps `main.tsx` pure), `capacitorTtsEngine.ts`. (§6, §8 P3/P4)
+12. **Capacitor hygiene** — all `@capacitor/*` same minor; `@capacitor/cli` devDep; `cap
+    doctor` in P2 acceptance; leave `server` config default; `.gitignore` the generated
+    `capacitor.config.json`, commit `Podfile.lock`. (§8 P2)
