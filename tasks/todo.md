@@ -30,18 +30,18 @@
 - Characters: Dot/duck/Quack, Pip/cat/Meow, Hopper/frog/Ribbit, Momo/bunny/Boing.
 
 ## Tasks
-- [ ] **T1 — Scaffold + design system + assets.** Vite+React+TS, vitest, playwright, eslint/prettier,
+- [x] **T1 — Scaffold + design system + assets.** Vite+React+TS, vitest, playwright, eslint/prettier,
       vite-plugin-pwa. Copy `assets/`→`public/`, adapt `tokens.css`/`app.css`, fonts, index.html.
       `npm run build` + `npm test` green.
-- [ ] **T2 — Pure game core (TDD).** types, characters, constants, round.ts (gen+tiers+size, seedable RNG),
+- [x] **T2 — Pure game core (TDD).** types, characters, constants, round.ts (gen+tiers+size, seedable RNG),
       persistence.ts. Full unit tests.
-- [ ] **T3 — Game state machine (TDD).** `useGame` reducer: pick / handleChoice(correct|wrong) /
+- [x] **T3 — Game state machine (TDD).** `useGame` reducer: pick / handleChoice(correct|wrong) /
       tapAnimal / replay / back / gate / settings; timers via fake timers in tests.
-- [ ] **T4 — Audio.** speech.ts (TTS+voice pick), sfx.ts (WebAudio). jsdom-safe no-ops.
-- [ ] **T5 — Components + confetti + integration.** StartScreen, PlayScreen, Scene, NumberButton,
+- [x] **T4 — Audio.** speech.ts (TTS+voice pick), sfx.ts (WebAudio). jsdom-safe no-ops.
+- [x] **T5 — Components + confetti + integration.** StartScreen, PlayScreen, Scene, NumberButton,
       AnimalField/Animal, ReplayPill, ChromeBar/Back, ParentalGate, SettingsSheet, Confetti canvas,
       CharacterSprite (inline SVG). Full playable app + component tests.
-- [ ] **T6 — PWA + a11y + reduce-motion.** manifest, SW/offline, prefers-reduced-motion default,
+- [x] **T6 — PWA + a11y + reduce-motion.** manifest, SW/offline, prefers-reduced-motion default,
       aria labels, apple-touch-icons, theme-color.
 - [ ] **T7 — E2E (Playwright) + screenshots.** tier→correct→celebration→wrong→gate→settings; capture
       marketing screenshots.
