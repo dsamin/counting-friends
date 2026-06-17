@@ -58,12 +58,15 @@ test('02 - counting / mid-round play screen', async ({ page }) => {
 });
 
 test('03 - celebration / hero shot with live confetti', async ({ page }) => {
+  // Catching a live confetti frame is timing-sensitive; give the retry loop
+  // generous headroom so local regeneration is reliable on slower machines.
+  test.setTimeout(120_000);
   await page.goto('/');
 
   // Try a few times: tap the correct number and capture immediately, within
   // the 1450ms confetti window, so the live burst is on screen.
   let captured = false;
-  for (let attempt = 0; attempt < 4 && !captured; attempt++) {
+  for (let attempt = 0; attempt < 8 && !captured; attempt++) {
     await enterPlay(page, 'Easy — count 1 to 5');
     await settle(page);
 
