@@ -1,40 +1,35 @@
+import { useEffect, useMemo } from 'react';
+import { useGame } from './game/useGame';
+import { createWebAudioEngine } from './audio/webAudioEngine';
+import CharacterDefs from './components/CharacterDefs';
+import Scene from './components/Scene';
+import StartScreen from './screens/StartScreen';
+import PlayScreen from './screens/PlayScreen';
+
 /**
- * App — placeholder shell.
- *
- * Renders the full-bleed storybook scene (sky → hills → ground) with the
- * "Counting Friends" wordmark centered. This exists only to prove the
- * build + self-hosted fonts + design tokens are wired correctly; it will be
- * replaced by the real Start/Play screens in a later task.
+ * App — the root. Creates the live audio engine exactly once, drives the game
+ * via `useGame`, keeps the engine's enabled flag in sync with the voice toggle,
+ * and renders the continuous storybook scene plus whichever screen is active.
  */
 export default function App() {
+  // Create the engine once for the lifetime of the app.
+  const engine = useMemo(() => createWebAudioEngine(), []);
+  const { state, actions } = useGame({ audio: engine });
+
+  // Keep voice-over enabled state in sync with the settings toggle.
+  useEffect(() => {
+    engine.setEnabled?.(state.voiceOn);
+  }, [engine, state.voiceOn]);
+
   return (
     <div className="cf-app">
-      <div className="cf-scene" aria-hidden="true" />
-      <main
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px',
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: 'var(--cf-font-display)',
-            fontWeight: 800,
-            fontSize: 'clamp(40px, 9vw, 88px)',
-            lineHeight: 1.05,
-            textAlign: 'center',
-            color: 'var(--cf-ink)',
-          }}
-        >
-          Counting <span style={{ color: 'var(--cf-coral)' }}>Friends</span>
-        </h1>
-      </main>
+      <CharacterDefs />
+      <Scene />
+      {state.screen === 'start' ? (
+        <StartScreen state={state} actions={actions} />
+      ) : (
+        <PlayScreen state={state} actions={actions} />
+      )}
     </div>
   );
 }
