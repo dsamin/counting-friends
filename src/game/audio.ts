@@ -18,6 +18,8 @@ export interface AudioEngine {
   cancelSpeech(): void;
   /** Optional callback the engine invokes as speech starts/stops. */
   onSpeakingChange?: (speaking: boolean) => void;
+  /** Optionally enable/disable voice-over (real engine only). */
+  setEnabled?(on: boolean): void;
 }
 
 /** A no-op engine: lets the hook run with audio fully disabled (and in tests). */
@@ -28,4 +30,5 @@ export const silentAudio: AudioEngine = {
   playWhoops() {},
   playChirp() {},
   cancelSpeech() {},
+  setEnabled() {},
 };
