@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -85,5 +86,8 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
     css: true,
+    // Playwright e2e specs live in e2e/ and must not be collected by Vitest
+    // (they use @playwright/test APIs like test.use that error under Vitest).
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 });
