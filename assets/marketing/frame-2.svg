@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <title>App Store frame 2 — &#34;Every answer is a celebration&#34;</title>
+  <defs>
+    <linearGradient id="f2bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD0C6"></stop><stop offset="1" stop-color="#FF8A7A"></stop></linearGradient>
+    <linearGradient id="f2sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BBE5F1"></stop><stop offset=".52" stop-color="#DDEFEC"></stop><stop offset=".52" stop-color="#C7E8B2"></stop><stop offset="1" stop-color="#C7E8B2"></stop></linearGradient>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#f2bg)"></rect>
+  <text x="600" y="180" text-anchor="middle" font-family="&#39;Baloo 2&#39;,sans-serif" font-weight="800" font-size="86" fill="#5A4633">Every answer</text>
+  <text x="600" y="278" text-anchor="middle" font-family="&#39;Baloo 2&#39;,sans-serif" font-weight="800" font-size="86" fill="#5A4633">is a celebration</text>
+  <text x="600" y="350" text-anchor="middle" font-family="&#39;Quicksand&#39;,sans-serif" font-weight="600" font-size="38" fill="#7A4A40">Confetti, cheers &amp; a friendly voice</text>
+  <g transform="translate(150 430)">
+    <rect x="-18" y="-18" width="936" height="1106" rx="60" fill="#26211D"></rect>
+    <clipPath id="f2clip"><rect width="900" height="1070" rx="44"></rect></clipPath>
+    <g clip-path="url(#f2clip)">
+      <rect width="900" height="1070" fill="url(#f2sky)"></rect>
+      
+      <g>
+        <rect x="150" y="220" width="44" height="28" rx="8" fill="#FFC94D" transform="rotate(20 172 234)"></rect>
+        <rect x="700" y="300" width="44" height="28" rx="8" fill="#9FD9A3" transform="rotate(-15 722 314)"></rect>
+        <circle cx="220" cy="430" r="20" fill="#A8D8E8"></circle>
+        <circle cx="690" cy="500" r="20" fill="#FF8A7A"></circle>
+        <path d="M450 120 l14 30 32 0 -26 20 10 32 -30-18 -30 18 10-32 -26-20 32 0 z" fill="#FFC94D"></path>
+        <rect x="330" y="200" width="36" height="24" rx="8" fill="#FF8A7A" transform="rotate(-25 348 212)"></rect>
+        <rect x="560" y="210" width="36" height="24" rx="8" fill="#FFC94D" transform="rotate(15 578 222)"></rect>
+      </g>
+      
+      <g transform="translate(450 480) scale(4.2) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="50" cy="63" rx="33" ry="25" fill="#9FD9A3"></ellipse><circle cx="34" cy="31" r="13" fill="#9FD9A3"></circle><circle cx="66" cy="31" r="13" fill="#9FD9A3"></circle>
+        <circle cx="34" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle><circle cx="66" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="36" cy="30" r="1.9" fill="#fff" stroke="none"></circle><circle cx="68" cy="30" r="1.9" fill="#fff" stroke="none"></circle>
+        <path d="M31 61 Q50 80 69 61" fill="none"></path><circle cx="45" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle><circle cx="55" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle>
+      </g>
+      
+      <g transform="translate(450 850)">
+        <rect x="-210" y="-70" width="420" height="140" rx="56" fill="#FFFDF6" stroke="#5A4633" stroke-width="14"></rect>
+        <text text-anchor="middle" y="32" font-family="&#39;Baloo 2&#39;,sans-serif" font-weight="800" font-size="84" fill="#5A4633">Three!</text>
+      </g>
+    </g>
+  </g>
+</svg>

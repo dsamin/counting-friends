@@ -1,0 +1,104 @@
+/* ============================================================================
+   Counting Friends — Design Tokens
+   Single source of truth for color, type, shape, elevation, and motion.
+   Import this first, before app.css.
+   ========================================================================== */
+
+:root {
+  /* — Brand palette ——————————————————————————————————————————— */
+  --cf-duck:          #FFC94D;  /* primary — duck, correct state, sun */
+  --cf-duck-deep:     #F4B73A;  /* duck shadow / belly */
+  --cf-bill:          #F0883C;  /* duck bill */
+  --cf-coral:         #FF8A7A;  /* cat, brand accent, tier dots */
+  --cf-coral-deep:    #FF6F5C;
+  --cf-frog:          #9FD9A3;  /* frog, success */
+  --cf-sky:           #A8D8E8;  /* bunny, sky accents */
+  --cf-cream:         #FBF3DC;  /* app background */
+  --cf-cream-raised:  #FFFDF6;  /* raised button faces */
+  --cf-ink:           #5A4633;  /* the ONLY outline + text color (warm brown) */
+  --cf-ink-soft:      #8A7A64;  /* secondary copy */
+  --cf-ink-faint:     #A89A82;  /* tertiary copy / captions */
+  --cf-blush:         #FFD2C7;  /* inner-ear / cheek tint */
+
+  /* — Scene gradients ———————————————————————————————————————— */
+  --cf-sky-top:       #BBE5F1;
+  --cf-sky-bottom:    #DDEFEC;
+  --cf-ground:        #C7E8B2;
+  --cf-hill-a:        #A6DCA0;
+  --cf-hill-b:        #B7E2AE;
+
+  /* — Typography ————————————————————————————————————————————— */
+  --cf-font-display:  'Baloo 2', system-ui, -apple-system, sans-serif; /* display, numbers, names */
+  --cf-font-ui:       'Quicksand', system-ui, -apple-system, sans-serif; /* UI + adult copy */
+
+  /* — Shape ——————————————————————————————————————————————————— */
+  --cf-r-button:      34px;
+  --cf-r-card:        28px;
+  --cf-r-tile:        18px;
+  --cf-r-pill:        999px;
+  --cf-r-frame:       30px;
+  --cf-stroke:        var(--cf-ink);
+  --cf-stroke-w:      4px;   /* characters */
+  --cf-stroke-w-btn:  5px;   /* number buttons */
+  --cf-stroke-w-icon: 2.6px; /* UI icons */
+
+  /* — Elevation (chunky offset shadows for play; soft for adult chrome) —— */
+  --cf-press:         0 8px 0 rgba(90,70,51,.16);
+  --cf-press-gold:    0 10px 0 rgba(205,150,38,.55);
+  --cf-card:          0 4px 16px rgba(90,70,51,.08);
+  --cf-float:         0 9px 20px rgba(40,33,26,.28);
+
+  /* — Sizing rules ———————————————————————————————————————————— */
+  --cf-target-min:    88px;  /* minimum child hit-target */
+  --cf-btn-easy:      152px;
+  --cf-btn-default:   130px;
+
+  /* — Motion —————————————————————————————————————————————————— */
+  --cf-spring:        cubic-bezier(.34, 1.56, .64, 1);
+  --cf-ease:          ease-in-out;
+  --cf-advance:       1950ms;   /* correct → next round */
+  --cf-advance-rm:    1400ms;   /* reduced-motion variant */
+  --cf-revert:        640ms;    /* wrong button revert */
+  --cf-reask:         760ms;    /* re-speak prompt after wrong */
+  --cf-idle:          6000ms;   /* idle nudge interval */
+  --cf-gate-hold:     3000ms;   /* parental-gate press-and-hold */
+}
+
+/* — Keyframes ———————————————————————————————————————————————— */
+@keyframes cf-popIn {
+  0%   { transform: scale(.15) translateY(20px); opacity: 0; }
+  60%  { transform: scale(1.14) translateY(-5px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes cf-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+@keyframes cf-squashPop {
+  0%   { transform: scale(1); }
+  22%  { transform: scale(1.3, .76); }
+  46%  { transform: scale(.84, 1.2); }
+  70%  { transform: scale(1.12, .92); }
+  100% { transform: scale(1); }
+}
+@keyframes cf-wrongWobble {
+  0%   { transform: translateX(0) scale(1); }
+  18%  { transform: translateX(-8px) scale(.93); }
+  38%  { transform: translateX(8px) scale(.93); }
+  58%  { transform: translateX(-5px) scale(.96); }
+  78%  { transform: translateX(4px); }
+  100% { transform: translateX(0) scale(1); }
+}
+@keyframes cf-soundbar {
+  0%, 100% { transform: scaleY(.4); }
+  50%      { transform: scaleY(1); }
+}
+@keyframes cf-floaty {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-12px) rotate(3deg); }
+}
+
+/* Respect the OS preference as the default for the in-app "Reduce motion" toggle. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --cf-advance: var(--cf-advance-rm); }
+}

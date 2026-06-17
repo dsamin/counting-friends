@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:#E7E3DA;}
+  *{box-sizing:border-box;}
+</style>
+</helmet>
+
+<svg width="0" height="0" style="position:absolute;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <symbol id="a_cat" viewBox="0 0 100 100">
+      <g fill="none" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M27 40 L20 12 L47 31 Z" fill="#FF8A7A"></path>
+        <path d="M73 40 L80 12 L53 31 Z" fill="#FF8A7A"></path>
+        <path d="M31 36 L27 20 L41 31 Z" fill="#FFD2C7" stroke="none"></path>
+        <path d="M69 36 L73 20 L59 31 Z" fill="#FFD2C7" stroke="none"></path>
+        <circle cx="50" cy="58" r="32" fill="#FF8A7A"></circle>
+        <circle cx="39" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="61" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+        <path d="M47 62 L53 62 L50 66 Z" fill="#5A4633" stroke="none"></path>
+        <path d="M44 68 Q50 73 56 68"></path>
+        <circle cx="33" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+        <circle cx="67" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+        <path d="M13 57 L27 60 M13 65 L27 64" stroke-width="3"></path>
+        <path d="M87 57 L73 60 M87 65 L73 64" stroke-width="3"></path>
+      </g>
+    </symbol>
+    <symbol id="a_duck" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+        <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+        <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+        <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+        <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+      </g>
+    </symbol>
+    <symbol id="a_frog" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="50" cy="63" rx="33" ry="25" fill="#9FD9A3"></ellipse>
+        <circle cx="34" cy="31" r="13" fill="#9FD9A3"></circle>
+        <circle cx="66" cy="31" r="13" fill="#9FD9A3"></circle>
+        <circle cx="34" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="66" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="36" cy="30" r="1.9" fill="#fff" stroke="none"></circle>
+        <circle cx="68" cy="30" r="1.9" fill="#fff" stroke="none"></circle>
+        <path d="M31 61 Q50 80 69 61" fill="none" stroke-width="4"></path>
+        <circle cx="45" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle>
+        <circle cx="55" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle>
+        <circle cx="27" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.55"></circle>
+        <circle cx="73" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.55"></circle>
+      </g>
+    </symbol>
+    <symbol id="a_bunny" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="39" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(-13 39 27)"></ellipse>
+        <ellipse cx="61" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(13 61 27)"></ellipse>
+        <ellipse cx="39" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(-13 39 29)"></ellipse>
+        <ellipse cx="61" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(13 61 29)"></ellipse>
+        <circle cx="50" cy="61" r="29" fill="#A8D8E8"></circle>
+        <circle cx="40" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+        <circle cx="60" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+        <path d="M46 65 L54 65 L50 69 Z" fill="#FF8A7A" stroke="none"></path>
+        <path d="M50 69 Q46 73 42 71 M50 69 Q54 73 58 71" stroke-width="3" fill="none"></path>
+        <circle cx="32" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+        <circle cx="68" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+      </g>
+    </symbol>
+
+    <symbol id="appicon" viewBox="0 0 1024 1024">
+      <defs>
+        <linearGradient id="ic_sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#BBE5F1"></stop>
+          <stop offset="1" stop-color="#E7F3EC"></stop>
+        </linearGradient>
+      </defs>
+      <rect width="1024" height="1024" fill="url(#ic_sky)"></rect>
+      <circle cx="225" cy="225" r="115" fill="#FFC94D"></circle>
+      <circle cx="225" cy="225" r="150" fill="#FFC94D" opacity="0.2"></circle>
+      <g fill="#FFFFFF" opacity="0.92">
+        <ellipse cx="800" cy="240" rx="92" ry="46"></ellipse>
+        <ellipse cx="868" cy="266" rx="66" ry="38"></ellipse>
+        <ellipse cx="740" cy="266" rx="58" ry="34"></ellipse>
+      </g>
+      <ellipse cx="512" cy="980" rx="640" ry="300" fill="#A6DCA0"></ellipse>
+      <ellipse cx="512" cy="1030" rx="520" ry="260" fill="#8FCF8C"></ellipse>
+      <g transform="translate(512 560) scale(7.6) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+        <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+        <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+        <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+        <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div style="min-height:100vh;width:100%;font-family:'Quicksand',sans-serif;background:#E7E3DA;padding:64px 56px 96px;">
+
+  <!-- PAGE HEADER -->
+  <div style="max-width:1280px;margin:0 auto 12px;display:flex;align-items:center;gap:22px;">
+    <svg viewBox="0 0 1024 1024" style="width:84px;height:84px;border-radius:19px;box-shadow:0 8px 22px rgba(90,70,51,0.2);"><use href="#appicon"></use></svg>
+    <div>
+      <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:40px;color:#5A4633;line-height:1;">Counting Friends</div>
+      <div style="font-weight:600;color:#8a7a64;font-size:17px;margin-top:6px;">Brand &amp; production assets — everything needed to ship</div>
+    </div>
+  </div>
+  <div style="max-width:1280px;margin:0 auto 52px;height:3px;background:repeating-linear-gradient(90deg,#C9BEA8 0 14px,transparent 14px 24px);"></div>
+
+  <!-- SECTION: APP ICON -->
+  <div style="max-width:1280px;margin:0 auto 56px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">App Icon</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">1024×1024 master · scales clean to 60pt</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="background:#fff;border-radius:24px;padding:28px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <svg viewBox="0 0 1024 1024" style="width:240px;height:240px;"><use href="#appicon"></use></svg>
+        <div style="font-weight:600;font-size:13px;color:#a89a82;">Master · square (no mask)</div>
+      </div>
+      <div style="background:#fff;border-radius:24px;padding:28px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <svg viewBox="0 0 1024 1024" style="width:240px;height:240px;border-radius:54px;box-shadow:0 10px 26px rgba(90,70,51,0.22);"><use href="#appicon"></use></svg>
+        <div style="font-weight:600;font-size:13px;color:#a89a82;">iOS rounded (22.4% radius)</div>
+      </div>
+      <div style="background:#fff;border-radius:24px;padding:28px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:22px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><svg viewBox="0 0 1024 1024" style="width:120px;height:120px;border-radius:27px;box-shadow:0 5px 14px rgba(90,70,51,0.2);"><use href="#appicon"></use></svg><div style="font-weight:600;font-size:12px;color:#8a7a64;">120px</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><svg viewBox="0 0 1024 1024" style="width:76px;height:76px;border-radius:17px;box-shadow:0 4px 10px rgba(90,70,51,0.2);"><use href="#appicon"></use></svg><div style="font-weight:600;font-size:12px;color:#8a7a64;">76px</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><svg viewBox="0 0 1024 1024" style="width:40px;height:40px;border-radius:9px;box-shadow:0 3px 7px rgba(90,70,51,0.2);"><use href="#appicon"></use></svg><div style="font-weight:600;font-size:12px;color:#8a7a64;">40px</div></div>
+        </div>
+        <div style="font-weight:600;font-size:13px;color:#a89a82;margin-top:6px;">Legible at every size</div>
+      </div>
+      <!-- home screen mock -->
+      <div style="background:linear-gradient(165deg,#CDE7F3,#E9DFce);border-radius:24px;padding:30px 34px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+        <svg viewBox="0 0 1024 1024" style="width:104px;height:104px;border-radius:23px;box-shadow:0 9px 20px rgba(40,33,26,0.28);"><use href="#appicon"></use></svg>
+        <div style="font-family:'Quicksand',sans-serif;font-weight:600;font-size:15px;color:#3a342c;text-shadow:0 1px 2px rgba(255,255,255,0.5);">Counting Friends</div>
+        <div style="font-weight:600;font-size:13px;color:#5A4633;opacity:0.55;margin-top:8px;">On the home screen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: WORDMARK / LOGO -->
+  <div style="max-width:1280px;margin:0 auto 56px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">Logo &amp; Lockups</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">Baloo 2 wordmark + duck mark</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="background:#FBF3DC;border-radius:24px;padding:38px 48px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;align-items:center;gap:18px;">
+        <svg viewBox="0 0 100 100" style="width:74px;height:74px;"><use href="#a_duck"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:46px;color:#5A4633;line-height:1;">Counting <span style="color:#FF8A7A;">Friends</span></div>
+      </div>
+      <div style="background:#5A4633;border-radius:24px;padding:38px 48px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;align-items:center;gap:18px;">
+        <svg viewBox="0 0 100 100" style="width:74px;height:74px;"><use href="#a_duck"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:46px;color:#FBF3DC;line-height:1;">Counting <span style="color:#FFC94D;">Friends</span></div>
+      </div>
+      <div style="background:#fff;border-radius:24px;padding:30px 40px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:12px;justify-content:center;">
+        <svg viewBox="0 0 100 100" style="width:64px;height:64px;"><use href="#a_duck"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:22px;color:#5A4633;line-height:1;">Counting Friends</div>
+        <div style="font-weight:600;font-size:12px;color:#a89a82;margin-top:6px;">Stacked / square</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: CHARACTER SET -->
+  <div style="max-width:1280px;margin:0 auto 56px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">The Friends</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">4 mascots · same line weight, same eye style — one family</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;">
+      <div style="background:#FFF6E0;border-radius:24px;padding:30px 20px 24px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <svg viewBox="0 0 100 100" style="width:128px;height:128px;"><use href="#a_duck"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#5A4633;">Dot the Duck</div>
+        <div style="background:#FFC94D;border:3px solid #5A4633;border-radius:20px;padding:5px 16px;font-weight:700;font-size:14px;color:#5A4633;">“Quack!”</div>
+      </div>
+      <div style="background:#FFEDE9;border-radius:24px;padding:30px 20px 24px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <svg viewBox="0 0 100 100" style="width:128px;height:128px;"><use href="#a_cat"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#5A4633;">Pip the Cat</div>
+        <div style="background:#FF8A7A;border:3px solid #5A4633;border-radius:20px;padding:5px 16px;font-weight:700;font-size:14px;color:#fff;">“Meow!”</div>
+      </div>
+      <div style="background:#EAF6E8;border-radius:24px;padding:30px 20px 24px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <svg viewBox="0 0 100 100" style="width:128px;height:128px;"><use href="#a_frog"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#5A4633;">Hopper the Frog</div>
+        <div style="background:#9FD9A3;border:3px solid #5A4633;border-radius:20px;padding:5px 16px;font-weight:700;font-size:14px;color:#5A4633;">“Ribbit!”</div>
+      </div>
+      <div style="background:#E6F3F8;border-radius:24px;padding:30px 20px 24px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <svg viewBox="0 0 100 100" style="width:128px;height:128px;"><use href="#a_bunny"></use></svg>
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#5A4633;">Momo the Bunny</div>
+        <div style="background:#A8D8E8;border:3px solid #5A4633;border-radius:20px;padding:5px 16px;font-weight:700;font-size:14px;color:#5A4633;">“Boing!”</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: COLOR + TYPE -->
+  <div style="max-width:1280px;margin:0 auto 56px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">Palette &amp; Type</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="background:#fff;border-radius:24px;padding:26px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;gap:16px;flex-wrap:wrap;flex:1;min-width:480px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#FFC94D;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Duck</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#FFC94D</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#FF8A7A;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Coral</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#FF8A7A</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#9FD9A3;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Frog</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#9FD9A3</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#A8D8E8;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Sky</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#A8D8E8</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Cream</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#FBF3DC</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:74px;height:74px;border-radius:18px;background:#5A4633;border:3px solid #5A4633;"></div><div style="font-weight:700;font-size:12px;color:#5A4633;">Ink</div><div style="font-weight:500;font-size:11px;color:#a89a82;">#5A4633</div></div>
+      </div>
+      <div style="background:#fff;border-radius:24px;padding:28px 32px;box-shadow:0 4px 16px rgba(90,70,51,0.08);flex:1;min-width:360px;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:44px;color:#5A4633;line-height:1.05;">Baloo 2</div>
+        <div style="font-weight:600;font-size:13px;color:#a89a82;margin:4px 0 18px;">Display · numbers · names — friendly, rounded</div>
+        <div style="font-family:'Quicksand',sans-serif;font-weight:600;font-size:24px;color:#5A4633;">Quicksand</div>
+        <div style="font-weight:600;font-size:13px;color:#a89a82;margin-top:4px;">UI · labels · grown-up text</div>
+        <div style="display:flex;gap:10px;margin-top:18px;font-family:'Baloo 2',cursive;font-weight:800;color:#5A4633;font-size:30px;">1 2 3 4 5 6 7 8 9 10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: LAUNCH SCREEN -->
+  <div style="max-width:1280px;margin:0 auto 56px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">Launch Screen</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">Shown instantly on open — no spinner, no words to read</div>
+    </div>
+    <div style="background:#fff;border-radius:24px;padding:28px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:inline-block;">
+      <div style="position:relative;width:760px;height:534px;background:#26211D;border-radius:30px;padding:14px;">
+        <div style="position:relative;width:100%;height:100%;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#BBE5F1 0%,#DDEFEC 55%,#C7E8B2 55%,#C7E8B2 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+          <div style="position:absolute;top:42px;left:64px;width:74px;height:74px;border-radius:40px;background:#FFC94D;"></div>
+          <svg viewBox="0 0 100 100" style="width:150px;height:150px;filter:drop-shadow(0 10px 16px rgba(90,70,51,0.18));"><use href="#a_duck"></use></svg>
+          <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:48px;color:#5A4633;line-height:1;">Counting <span style="color:#FF8A7A;">Friends</span></div>
+          <div style="display:flex;gap:9px;margin-top:4px;">
+            <div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div>
+            <div style="width:13px;height:13px;border-radius:7px;background:#FFC94D;"></div>
+            <div style="width:13px;height:13px;border-radius:7px;background:#9FD9A3;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: APP STORE MARKETING FRAMES -->
+  <div style="max-width:1280px;margin:0 auto 24px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">App Store Marketing Frames</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">Headline + device · the story parents scroll through</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+
+      <!-- frame 1 -->
+      <div style="background:linear-gradient(170deg,#FFE6A6,#FFC94D);border-radius:28px;padding:34px 26px 0;box-shadow:0 6px 20px rgba(90,70,51,0.12);display:flex;flex-direction:column;align-items:center;overflow:hidden;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#5A4633;text-align:center;line-height:1.08;">Tap your<br>friends to count</div>
+        <div style="font-weight:600;font-size:14px;color:#7a5f44;margin:10px 0 22px;text-align:center;">Ages 2–5 · counting 1 to 20</div>
+        <div style="width:100%;border-radius:20px 20px 0 0;overflow:hidden;background:#FBF3DC;box-shadow:0 -2px 0 #5A4633 inset, 0 0 0 6px #26211D;">
+          <div style="position:relative;height:230px;background:linear-gradient(180deg,#BBE5F1 0%,#DDEFEC 52%,#C7E8B2 52%);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="display:flex;gap:14px;margin-top:8px;">
+              <svg viewBox="0 0 100 100" style="width:62px;height:62px;"><use href="#a_cat"></use></svg>
+              <svg viewBox="0 0 100 100" style="width:62px;height:62px;"><use href="#a_cat"></use></svg>
+              <svg viewBox="0 0 100 100" style="width:62px;height:62px;"><use href="#a_cat"></use></svg>
+            </div>
+            <div style="display:flex;gap:14px;margin-top:auto;margin-bottom:14px;">
+              <div style="width:58px;height:58px;border-radius:18px;border:4px solid #5A4633;background:#FFFDF6;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#5A4633;">2</div>
+              <div style="width:58px;height:58px;border-radius:18px;border:4px solid #5A4633;background:#FFC94D;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#5A4633;">3</div>
+              <div style="width:58px;height:58px;border-radius:18px;border:4px solid #5A4633;background:#FFFDF6;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#5A4633;">4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- frame 2 -->
+      <div style="background:linear-gradient(170deg,#FFD0C6,#FF8A7A);border-radius:28px;padding:34px 26px 0;box-shadow:0 6px 20px rgba(90,70,51,0.12);display:flex;flex-direction:column;align-items:center;overflow:hidden;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#5A4633;text-align:center;line-height:1.08;">Every answer<br>is a celebration</div>
+        <div style="font-weight:600;font-size:14px;color:#7a4a40;margin:10px 0 22px;text-align:center;">Confetti, cheers &amp; a friendly voice</div>
+        <div style="width:100%;border-radius:20px 20px 0 0;overflow:hidden;background:#FBF3DC;box-shadow:0 0 0 6px #26211D;">
+          <div style="position:relative;height:230px;background:linear-gradient(180deg,#BBE5F1 0%,#DDEFEC 52%,#C7E8B2 52%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+            <svg viewBox="0 0 200 200" style="position:absolute;inset:0;width:100%;height:100%;" aria-hidden="true">
+              <g>
+                <rect x="30" y="40" width="11" height="7" rx="2" fill="#FFC94D" transform="rotate(20 35 43)"></rect>
+                <rect x="160" y="58" width="11" height="7" rx="2" fill="#9FD9A3" transform="rotate(-15 165 61)"></rect>
+                <circle cx="48" cy="92" r="5" fill="#A8D8E8"></circle>
+                <circle cx="158" cy="110" r="5" fill="#FF8A7A"></circle>
+                <path d="M100 22 l3 7 7 0 -5.5 4.5 2 7 -6.5-4 -6.5 4 2-7 -5.5-4.5 7 0 z" fill="#FFC94D"></path>
+                <rect x="74" y="36" width="9" height="6" rx="2" fill="#FF8A7A" transform="rotate(-25 78 39)"></rect>
+                <rect x="128" y="40" width="9" height="6" rx="2" fill="#FFC94D" transform="rotate(15 132 43)"></rect>
+              </g>
+            </svg>
+            <svg viewBox="0 0 100 100" style="width:96px;height:96px;filter:drop-shadow(0 8px 12px rgba(90,70,51,0.2));"><use href="#a_frog"></use></svg>
+            <div style="margin-top:12px;background:#FFFDF6;border:4px solid #5A4633;border-radius:22px;padding:7px 22px;font-family:'Baloo 2',cursive;font-weight:800;font-size:24px;color:#5A4633;box-shadow:0 6px 0 rgba(90,70,51,0.16);">Three! 🎉</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- frame 3 -->
+      <div style="background:linear-gradient(170deg,#BFE8C6,#9FD9A3);border-radius:28px;padding:34px 26px 0;box-shadow:0 6px 20px rgba(90,70,51,0.12);display:flex;flex-direction:column;align-items:center;overflow:hidden;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:30px;color:#3f5e3f;text-align:center;line-height:1.08;">No ads.<br>No data. No fail.</div>
+        <div style="font-weight:600;font-size:14px;color:#4d6b4d;margin:10px 0 22px;text-align:center;">A safe place for little ones to play</div>
+        <div style="width:100%;border-radius:20px 20px 0 0;overflow:hidden;background:#FBF7EE;box-shadow:0 0 0 6px #26211D;">
+          <div style="height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 22px;">
+            <svg viewBox="0 0 100 100" style="width:78px;height:78px;"><use href="#a_bunny"></use></svg>
+            <div style="display:flex;flex-direction:column;gap:9px;width:100%;">
+              <div style="display:flex;align-items:center;gap:10px;background:#EAF6E8;border-radius:13px;padding:9px 14px;"><div style="width:22px;height:22px;border-radius:11px;background:#9FD9A3;border:2.5px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#5A4633" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13 l4 4 L19 6"></path></svg></div><div style="font-weight:700;font-size:13.5px;color:#5A4633;">No ads, ever</div></div>
+              <div style="display:flex;align-items:center;gap:10px;background:#EAF6E8;border-radius:13px;padding:9px 14px;"><div style="width:22px;height:22px;border-radius:11px;background:#9FD9A3;border:2.5px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#5A4633" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13 l4 4 L19 6"></path></svg></div><div style="font-weight:700;font-size:13.5px;color:#5A4633;">No data collected</div></div>
+              <div style="display:flex;align-items:center;gap:10px;background:#EAF6E8;border-radius:13px;padding:9px 14px;"><div style="width:22px;height:22px;border-radius:11px;background:#9FD9A3;border:2.5px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#5A4633" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13 l4 4 L19 6"></path></svg></div><div style="font-weight:700;font-size:13.5px;color:#5A4633;">No way to fail</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION: UI ICON SET -->
+  <div style="max-width:1280px;margin:0 auto 24px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:24px;color:#5A4633;">UI Icons</div>
+      <div style="font-weight:600;font-size:14px;color:#a89a82;">2.6px round strokes · only what a toddler UI needs</div>
+    </div>
+    <div style="background:#fff;border-radius:24px;padding:30px;box-shadow:0 4px 16px rgba(90,70,51,0.08);display:flex;gap:30px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"></path><path d="M9 12 L19 12"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Back</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 a8 8 0 1 1 2.5 5.8"></path><path d="M4 18 L4 12 L10 12"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Replay</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 L4 10 L8 10 L11 6 L11 18 L8 14 L4 14 Z" fill="#5A4633"></path><path d="M15 9 Q18 12 15 15"></path><path d="M18 7 Q22 12 18 17"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Voice</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="4"></circle><path d="M5 20 a7 7 0 0 1 14 0"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Child name</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2.5"></rect><path d="M8 10 V7 a4 4 0 0 1 8 0 v3"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Parent gate</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.4"></circle><path d="M12 4 v2.5 M12 17.5 v2.5 M4 12 h2.5 M17.5 12 h2.5 M6.3 6.3 l1.8 1.8 M15.9 15.9 l1.8 1.8 M17.7 6.3 l-1.8 1.8 M8.1 15.9 l-1.8 1.8"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Settings</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:62px;height:62px;border-radius:18px;background:#FBF3DC;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#5A4633" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C5 15 3 10 6 7 c2-2 5-1 6 2 1-3 4-4 6-2 3 3 1 8 -6 14 Z" fill="#FF8A7A" stroke="#5A4633"></path></svg></div><div style="font-weight:600;font-size:12px;color:#a89a82;">Favorite</div></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

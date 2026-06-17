@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1536" viewBox="0 0 2048 1536">
+  <title>Counting Friends — Launch / splash screen (iPad landscape 4:3)</title>
+  
+  <defs>
+    <linearGradient id="cf_launch_sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BBE5F1"></stop>
+      <stop offset="1" stop-color="#DDEFEC"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="2048" height="1536" fill="#FBF3DC"></rect>
+  <rect width="2048" height="900" fill="url(#cf_launch_sky)"></rect>
+  <circle cx="240" cy="200" r="120" fill="#FFC94D"></circle>
+  <circle cx="240" cy="200" r="158" fill="#FFC94D" opacity="0.18"></circle>
+  <g fill="#FFFFFF" opacity="0.9">
+    <ellipse cx="1640" cy="230" rx="120" ry="58"></ellipse>
+    <ellipse cx="1730" cy="262" rx="86" ry="48"></ellipse>
+    <ellipse cx="1556" cy="262" rx="78" ry="44"></ellipse>
+  </g>
+  <rect y="900" width="2048" height="636" fill="#C7E8B2"></rect>
+  <ellipse cx="500" cy="1180" rx="760" ry="360" fill="#A6DCA0"></ellipse>
+  <ellipse cx="1700" cy="1240" rx="800" ry="380" fill="#B7E2AE"></ellipse>
+  
+  <g transform="translate(1024 560) scale(4.6) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+    <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+    <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+    <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+    <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+    <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+  </g>
+  <text x="1024" y="1010" text-anchor="middle" font-family="&#39;Baloo 2&#39;, system-ui, sans-serif" font-weight="800" font-size="120" fill="#5A4633">Counting <tspan fill="#FF8A7A">Friends</tspan></text>
+  <g>
+    <rect x="968" y="1070" width="26" height="26" rx="13" fill="#FF8A7A"></rect>
+    <rect x="1011" y="1070" width="26" height="26" rx="13" fill="#FFC94D"></rect>
+    <rect x="1054" y="1070" width="26" height="26" rx="13" fill="#9FD9A3"></rect>
+  </g>
+</svg>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:#DCD8CF;}
+  *{box-sizing:border-box;}
+  @keyframes popIn{0%{transform:scale(0.15) translateY(20px);opacity:0}60%{transform:scale(1.14) translateY(-5px);opacity:1}100%{transform:scale(1) translateY(0)}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @keyframes squashPop{0%{transform:scale(1)}22%{transform:scale(1.3,0.76)}46%{transform:scale(0.84,1.2)}70%{transform:scale(1.12,0.92)}100%{transform:scale(1)}}
+  @keyframes wrongWobble{0%{transform:translateX(0) scale(1)}18%{transform:translateX(-8px) scale(0.93)}38%{transform:translateX(8px) scale(0.93)}58%{transform:translateX(-5px) scale(0.96)}78%{transform:translateX(4px)}100%{transform:translateX(0) scale(1)}}
+  @keyframes soundbar{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+</style>
+</helmet>
+
+<svg width="0" height="0" style="position:absolute;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <symbol id="cat" viewBox="0 0 100 100">
+      <g fill="none" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M27 40 L20 12 L47 31 Z" fill="#FF8A7A"></path>
+        <path d="M73 40 L80 12 L53 31 Z" fill="#FF8A7A"></path>
+        <path d="M31 36 L27 20 L41 31 Z" fill="#FFD2C7" stroke="none"></path>
+        <path d="M69 36 L73 20 L59 31 Z" fill="#FFD2C7" stroke="none"></path>
+        <circle cx="50" cy="58" r="32" fill="#FF8A7A"></circle>
+        <circle cx="39" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="61" cy="55" r="4.6" fill="#5A4633" stroke="none"></circle>
+        <path d="M47 62 L53 62 L50 66 Z" fill="#5A4633" stroke="none"></path>
+        <path d="M44 68 Q50 73 56 68"></path>
+        <circle cx="33" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+        <circle cx="67" cy="64" r="5.5" fill="#FF6F5C" stroke="none" opacity="0.6"></circle>
+        <path d="M13 57 L27 60 M13 65 L27 64" stroke-width="3"></path>
+        <path d="M87 57 L73 60 M87 65 L73 64" stroke-width="3"></path>
+      </g>
+    </symbol>
+    <symbol id="duck" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+        <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+        <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+        <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+        <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+      </g>
+    </symbol>
+    <symbol id="frog" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="50" cy="63" rx="33" ry="25" fill="#9FD9A3"></ellipse>
+        <circle cx="34" cy="31" r="13" fill="#9FD9A3"></circle>
+        <circle cx="66" cy="31" r="13" fill="#9FD9A3"></circle>
+        <circle cx="34" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="66" cy="32" r="5.6" fill="#5A4633" stroke="none"></circle>
+        <circle cx="36" cy="30" r="1.9" fill="#fff" stroke="none"></circle>
+        <circle cx="68" cy="30" r="1.9" fill="#fff" stroke="none"></circle>
+        <path d="M31 61 Q50 80 69 61" fill="none" stroke-width="4"></path>
+        <circle cx="45" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle>
+        <circle cx="55" cy="57" r="1.8" fill="#5A4633" stroke="none"></circle>
+        <circle cx="27" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.55"></circle>
+        <circle cx="73" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.55"></circle>
+      </g>
+    </symbol>
+    <symbol id="bunny" viewBox="0 0 100 100">
+      <g stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="39" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(-13 39 27)"></ellipse>
+        <ellipse cx="61" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(13 61 27)"></ellipse>
+        <ellipse cx="39" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(-13 39 29)"></ellipse>
+        <ellipse cx="61" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(13 61 29)"></ellipse>
+        <circle cx="50" cy="61" r="29" fill="#A8D8E8"></circle>
+        <circle cx="40" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+        <circle cx="60" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+        <path d="M46 65 L54 65 L50 69 Z" fill="#FF8A7A" stroke="none"></path>
+        <path d="M50 69 Q46 73 42 71 M50 69 Q54 73 58 71" stroke-width="3" fill="none"></path>
+        <circle cx="32" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+        <circle cx="68" cy="66" r="5" fill="#FF8A7A" stroke="none" opacity="0.5"></circle>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px;font-family:'Quicksand',sans-serif;">
+  <div style="position:relative;width:1060px;height:756px;background:#26211D;border-radius:46px;padding:18px;box-shadow:0 30px 70px rgba(40,33,26,0.4);">
+    <div style="position:absolute;top:28px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:5px;background:#46403a;z-index:30;"></div>
+    <div style="position:relative;width:100%;height:100%;border-radius:30px;overflow:hidden;background:#FBF3DC;">
+
+      <svg viewBox="0 0 1024 720" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#BBE5F1"></stop>
+            <stop offset="1" stop-color="#DDEFEC"></stop>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="720" fill="#FBF3DC"></rect>
+        <rect width="1024" height="470" fill="url(#sky)"></rect>
+        <circle cx="146" cy="116" r="56" fill="#FFC94D" opacity="0.92"></circle>
+        <circle cx="146" cy="116" r="74" fill="#FFC94D" opacity="0.18"></circle>
+        <g fill="#FFFFFF" opacity="0.9">
+          <ellipse cx="780" cy="110" rx="58" ry="29"></ellipse>
+          <ellipse cx="828" cy="126" rx="44" ry="25"></ellipse>
+          <ellipse cx="734" cy="126" rx="40" ry="23"></ellipse>
+        </g>
+        <ellipse cx="230" cy="600" rx="380" ry="190" fill="#A6DCA0"></ellipse>
+        <ellipse cx="860" cy="620" rx="400" ry="200" fill="#B7E2AE"></ellipse>
+        <rect y="470" width="1024" height="250" fill="#C7E8B2"></rect>
+      </svg>
+
+      <sc-if value="{{ showStart }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px;">
+            <svg viewBox="0 0 100 100" style="{{ mascotStyle }}"><use href="#duck"></use></svg>
+            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:60px;color:#5A4633;line-height:1;">Counting <span style="color:#FF8A7A;">Friends</span></div>
+          </div>
+          <div style="font-family:'Quicksand',sans-serif;font-weight:600;color:#8a7a64;font-size:19px;margin-bottom:46px;">Pick a friend to start counting</div>
+          <div style="display:flex;align-items:flex-end;gap:38px;">
+            <div onClick="{{ onEasy }}" style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFDF6;border:4px solid #5A4633;border-radius:28px;padding:24px 30px 20px;cursor:pointer;box-shadow:0 9px 0 rgba(90,70,51,0.15);transition:transform 140ms;" style-hover="transform: translateY(-7px)">
+              <div style="height:184px;display:flex;align-items:flex-end;"><svg viewBox="0 0 100 100" style="width:96px;height:96px;"><use href="#duck"></use></svg></div>
+              <div style="display:flex;gap:9px;"><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div></div>
+            </div>
+            <div onClick="{{ onMedium }}" style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFDF6;border:4px solid #5A4633;border-radius:28px;padding:24px 30px 20px;cursor:pointer;box-shadow:0 9px 0 rgba(90,70,51,0.15);transition:transform 140ms;" style-hover="transform: translateY(-7px)">
+              <div style="height:184px;display:flex;align-items:flex-end;"><svg viewBox="0 0 100 100" style="width:134px;height:134px;"><use href="#duck"></use></svg></div>
+              <div style="display:flex;gap:9px;"><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div></div>
+            </div>
+            <div onClick="{{ onHard }}" style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFDF6;border:4px solid #5A4633;border-radius:28px;padding:24px 30px 20px;cursor:pointer;box-shadow:0 9px 0 rgba(90,70,51,0.15);transition:transform 140ms;" style-hover="transform: translateY(-7px)">
+              <div style="height:184px;display:flex;align-items:flex-end;"><svg viewBox="0 0 100 100" style="width:176px;height:176px;"><use href="#duck"></use></svg></div>
+              <div style="display:flex;gap:9px;"><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div><div style="width:13px;height:13px;border-radius:7px;background:#FF8A7A;"></div></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showPlay }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;">
+          <div style="height:96px;flex:none;"></div>
+          <div style="flex:1;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:8px 18px;padding:0 60px;">
+            <sc-for list="{{ slots }}" as="slot" hint-placeholder-count="3">
+              <div onClick="{{ slot.onClick }}" style="{{ slot.style }}">
+                <svg viewBox="0 0 100 100" style="width:100%;height:100%;overflow:visible;"><use href="{{ slot.href }}"></use></svg>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:none;display:flex;justify-content:center;align-items:flex-end;gap:28px;padding:0 40px 34px;min-height:188px;">
+            <sc-for list="{{ choiceButtons }}" as="btn" hint-placeholder-count="3">
+              <button onClick="{{ btn.onClick }}" style="{{ btn.style }}" style-active="transform: translateY(5px)">{{ btn.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div onClick="{{ onReplay }}" style="position:absolute;top:22px;left:50%;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:13px;background:#FFFDF6;border:4px solid #5A4633;border-radius:44px;padding:9px 22px 9px 13px;cursor:pointer;box-shadow:0 6px 0 rgba(90,70,51,0.14);">
+          <svg viewBox="0 0 100 100" style="width:44px;height:44px;"><use href="#duck"></use></svg>
+          <div style="display:flex;align-items:center;gap:6px;height:28px;">
+            <div style="{{ bar0 }}"></div><div style="{{ bar1 }}"></div><div style="{{ bar2 }}"></div>
+          </div>
+        </div>
+
+        <div onClick="{{ onBackToStart }}" style="position:absolute;top:24px;left:26px;z-index:6;width:60px;height:60px;border-radius:30px;background:#FFFDF6;border:4px solid #5A4633;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 0 rgba(90,70,51,0.14);">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#5A4633" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"></path><path d="M9 12 L19 12"></path></svg>
+        </div>
+      </sc-if>
+
+      <canvas ref="{{ setConfetti }}" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:15;"></canvas>
+
+      <div onPointerDown="{{ onGateDown }}" onPointerUp="{{ onGateUp }}" onPointerLeave="{{ onGateUp }}" style="position:absolute;bottom:22px;right:22px;z-index:8;width:66px;height:66px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none;">
+        <svg viewBox="0 0 72 72" style="position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);">
+          <circle cx="36" cy="36" r="30" fill="rgba(255,253,246,0.6)" stroke="#5A4633" stroke-opacity="0.16" stroke-width="6"></circle>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#FF8A7A" stroke-width="6" stroke-linecap="round" style="{{ gateRingStyle }}"></circle>
+        </svg>
+        <div style="width:17px;height:17px;border-radius:9px;background:#5A4633;opacity:0.5;"></div>
+      </div>
+
+      <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:25;background:rgba(38,33,29,0.5);display:flex;align-items:center;justify-content:center;font-family:'Quicksand',sans-serif;">
+          <div style="width:452px;background:#FBF7EE;border:4px solid #5A4633;border-radius:30px;padding:30px 34px 32px;box-shadow:0 24px 50px rgba(0,0,0,0.3);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:27px;color:#5A4633;">For grown-ups</div>
+              <div onClick="{{ onCloseSettings }}" style="width:42px;height:42px;border-radius:21px;border:3px solid #5A4633;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:#5A4633;font-weight:700;line-height:1;">×</div>
+            </div>
+            <div style="font-size:14px;color:#8a7a64;margin:6px 0 24px;font-weight:500;">Settings live here, away from little fingers.</div>
+
+            <div style="font-weight:700;color:#5A4633;font-size:15px;margin-bottom:8px;">Child's name <span style="font-weight:500;color:#a89a82;">(optional)</span></div>
+            <input value="{{ childName }}" onInput="{{ onName }}" placeholder="e.g. Jayden" style="width:100%;font-family:'Quicksand',sans-serif;font-weight:600;font-size:17px;color:#5A4633;padding:12px 16px;border:3px solid #C9BEA8;border-radius:14px;background:#fff;outline:none;"/>
+            <div style="font-size:12.5px;color:#a89a82;margin:8px 0 8px;font-weight:500;">Celebrations cheer them on by name. Stays on this device — never sent anywhere.</div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:2px solid rgba(90,70,51,0.12);margin-top:8px;">
+              <div><div style="font-weight:700;color:#5A4633;font-size:16px;">Reduce motion</div><div style="font-size:12.5px;color:#8a7a64;font-weight:500;">Calmer celebration, one soft sparkle.</div></div>
+              <div onClick="{{ onToggleRM }}" style="{{ rmSw.track }}"><div style="{{ rmSw.knob }}"></div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:2px solid rgba(90,70,51,0.12);">
+              <div><div style="font-weight:700;color:#5A4633;font-size:16px;">Mascot voice</div><div style="font-size:12.5px;color:#8a7a64;font-weight:500;">Speaks the prompts and praise aloud.</div></div>
+              <div onClick="{{ onToggleVoice }}" style="{{ voiceSw.track }}"><div style="{{ voiceSw.knob }}"></div></div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-top:18px;padding:12px;background:#EFEAD9;border-radius:14px;">
+              <div style="font-size:11px;color:#8a7a64;font-weight:600;line-height:1.4;">No ads · No in-app purchases · No data collected · No way to fail</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1160,&quot;height&quot;:836},&quot;defaultTier&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;easy&quot;,&quot;medium&quot;,&quot;hard&quot;],&quot;default&quot;:&quot;easy&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;voiceEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;confettiDensity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;calm&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.WORDS=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+    this.PRAISE=['You got it!','Yes!','Nice counting!','Hooray!','Well done!','So clever!'];
+    this.ANIMALS=[
+      {key:'duck', plural:'ducks', sound:'Quack', href:'#duck'},
+      {key:'cat', plural:'cats', sound:'Meow', href:'#cat'},
+      {key:'frog', plural:'frogs', sound:'Ribbit', href:'#frog'},
+      {key:'bunny', plural:'bunnies', sound:'Boing', href:'#bunny'},
+    ];
+    let savedTier=null, savedName='', savedRM=null, savedVoice=null;
+    try{ savedTier=localStorage.getItem('cf_tier'); savedName=localStorage.getItem('cf_name')||''; savedRM=localStorage.getItem('cf_rm'); savedVoice=localStorage.getItem('cf_voice'); }catch(e){}
+    this.state={
+      screen:'start',
+      tier: savedTier || (props.defaultTier||'easy'),
+      count:0, choices:[], animal:this.ANIMALS[0],
+      status:'asking', animatingValue:null, animType:null, animKey:0, roundId:0,
+      gateProgress:0, settingsOpen:false,
+      childName: savedName,
+      reduceMotion: savedRM==='1',
+      voiceOn: savedVoice==null ? (props.voiceEnabled!==false) : (savedVoice!=='0'),
+      speaking:false,
+    };
+  }
+
+  componentDidMount(){
+    try{ if(window.speechSynthesis){ window.speechSynthesis.onvoiceschanged=()=>{this._voice=null;}; window.speechSynthesis.getVoices(); } }catch(e){}
+    this._resize=()=>this.sizeCanvas();
+    window.addEventListener('resize',this._resize);
+    setTimeout(()=>this.sizeCanvas(),80);
+  }
+  componentWillUnmount(){
+    this.clearTimers();
+    window.removeEventListener('resize',this._resize);
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+  }
+  clearTimers(){
+    clearTimeout(this.idleTimer); clearTimeout(this.nextTimer); clearTimeout(this.revTimer); clearTimeout(this.reaskTimer);
+    cancelAnimationFrame(this.gateRaf); cancelAnimationFrame(this._raf);
+  }
+
+  tierMax(t){ return t==='easy'?5:t==='medium'?10:20; }
+  tierChoices(t){ return t==='easy'?3:4; }
+  cap(w){ return w.charAt(0).toUpperCase()+w.slice(1); }
+
+  pickVoice(){
+    if(this._voice!==undefined && this._voice!==null) return this._voice;
+    try{
+      const vs=window.speechSynthesis.getVoices();
+      if(!vs.length) return null;
+      const pref=vs.find(v=>/^en/i.test(v.lang)&&/(samantha|karen|moira|tessa|fiona|female|google uk english female|zira|aria|jenny)/i.test(v.name))
+        || vs.find(v=>/^en(-|_)?(US|GB|AU)/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || vs[0];
+      this._voice=pref; return pref;
+    }catch(e){ return null; }
+  }
+  speak(text){
+    if(!this.state.voiceOn) return;
+    try{
+      const ss=window.speechSynthesis; if(!ss) return;
+      ss.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.rate=0.92; u.pitch=1.18; u.volume=1;
+      const v=this.pickVoice(); if(v) u.voice=v;
+      u.onstart=()=>this.setState({speaking:true});
+      u.onend=()=>this.setState({speaking:false});
+      ss.speak(u);
+    }catch(e){}
+  }
+  speakPrompt(animal){ const a=animal||this.state.animal; if(a) this.speak('How many '+a.plural+'?'); }
+  speakPraise(){
+    const p=this.PRAISE[Math.floor(Math.random()*this.PRAISE.length)];
+    const w=this.cap(this.WORDS[this.state.count]||String(this.state.count));
+    const name=this.state.childName? (', '+this.state.childName) : '';
+    this.speak(w+'! '+p+name);
+  }
+
+  ensureAudio(){
+    try{
+      if(!this.ac){ const AC=window.AudioContext||window.webkitAudioContext; if(AC) this.ac=new AC(); }
+      if(this.ac && this.ac.state==='suspended') this.ac.resume();
+    }catch(e){}
+  }
+  tone(seq){
+    if(!this.ac) return;
+    const ac=this.ac; let t=ac.currentTime+0.01;
+    seq.forEach(([f,d,v])=>{
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(v,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+      o.connect(g).connect(ac.destination);
+      o.start(t); o.stop(t+d+0.03);
+      t+=d*0.78;
+    });
+  }
+  playPop(){ this.tone([[523,0.12,0.16],[659,0.12,0.16],[784,0.2,0.18]]); }
+  playWhoops(){ this.tone([[340,0.16,0.12],[250,0.22,0.12]]); }
+  playChirp(){ this.tone([[660,0.1,0.12],[880,0.12,0.12]]); }
+
+  sizeCanvas(){
+    const c=this.confettiRef; if(!c) return;
+    const dpr=Math.min(2, window.devicePixelRatio||1);
+    const w=c.clientWidth, h=c.clientHeight;
+    if(!w||!h) return;
+    c.width=Math.round(w*dpr); c.height=Math.round(h*dpr); c._dpr=dpr;
+  }
+
+  startIdle(){
+    clearTimeout(this.idleTimer);
+    this.idleTimer=setTimeout(()=>{
+      if(this.state.screen==='play' && this.state.status==='asking' && !this.state.settingsOpen){
+        this.speakPrompt(this.state.animal);
+      }
+      this.startIdle();
+    }, 6000);
+  }
+
+  generateRound(){
+    const t=this.state.tier, max=this.tierMax(t);
+    const count=1+Math.floor(Math.random()*max);
+    const animal=this.ANIMALS[Math.floor(Math.random()*this.ANIMALS.length)];
+    const nC=this.tierChoices(t);
+    const set=new Set([count]); let guard=0;
+    while(set.size<nC && guard++<200){ set.add(1+Math.floor(Math.random()*max)); }
+    const choices=[...set].sort((a,b)=>a-b);
+    this.setState(s=>({count,animal,choices,status:'asking',animatingValue:null,animType:null,roundId:s.roundId+1}));
+    this.speakPrompt(animal);
+    this.startIdle();
+  }
+
+  pick(tier){
+    try{ localStorage.setItem('cf_tier',tier); }catch(e){}
+    this.ensureAudio();
+    this.setState({screen:'play',tier},()=>{ setTimeout(()=>this.sizeCanvas(),60); this.generateRound(); });
+  }
+
+  handleChoice(value,e){
+    if(this.state.status!=='asking') return;
+    this.ensureAudio();
+    clearTimeout(this.idleTimer);
+    const correct = value===this.state.count;
+    this.setState(s=>({animatingValue:value, animType: correct?'correct':'wrong', animKey:s.animKey+1}));
+    if(correct){
+      this.setState({status:'correct'});
+      this.playPop();
+      this.burstConfetti(e);
+      this.speakPraise();
+      this.nextTimer=setTimeout(()=>this.generateRound(), this.state.reduceMotion?1400:1950);
+    }else{
+      this.playWhoops();
+      this.revTimer=setTimeout(()=>{ this.setState({animatingValue:null,animType:null}); }, 640);
+      this.reaskTimer=setTimeout(()=>{ if(this.state.status==='asking') this.speakPrompt(this.state.animal); }, 760);
+    }
+  }
+
+  tapAnimal(){
+    this.ensureAudio();
+    this.playChirp();
+    if(this.state.animal) this.speak(this.state.animal.sound);
+  }
+
+  backToStart(){
+    this.clearTimers();
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+    this.setState({screen:'start',settingsOpen:false,status:'asking',animatingValue:null,speaking:false});
+  }
+
+  gateDown(){
+    cancelAnimationFrame(this.gateRaf);
+    this._gateT0=performance.now();
+    const step=()=>{
+      const p=Math.min(1,(performance.now()-this._gateT0)/3000);
+      this.setState({gateProgress:p});
+      if(p>=1){ this.setState({settingsOpen:true,gateProgress:0}); return; }
+      this.gateRaf=requestAnimationFrame(step);
+    };
+    this.gateRaf=requestAnimationFrame(step);
+  }
+  gateUp(){ cancelAnimationFrame(this.gateRaf); if(this.state.gateProgress>0 && this.state.gateProgress<1) this.setState({gateProgress:0}); }
+
+  burstConfetti(e){
+    const canvas=this.confettiRef; if(!canvas) return;
+    this.sizeCanvas();
+    const crect=canvas.getBoundingClientRect();
+    let ox=crect.width/2, oy=crect.height*0.7;
+    if(e && e.currentTarget){ const r=e.currentTarget.getBoundingClientRect(); ox=r.left+r.width/2-crect.left; oy=r.top+r.height/2-crect.top; }
+    const ctx=canvas.getContext('2d');
+    const dpr=canvas._dpr||1;
+    const colors=['#FFC94D','#FF8A7A','#9FD9A3','#A8D8E8','#FFFFFF','#FFB23E'];
+    const rm=this.state.reduceMotion;
+    const n = rm ? 1 : (this.props.confettiDensity==='calm'?34:74);
+    const parts=[];
+    for(let i=0;i<n;i++){
+      const a=Math.random()*Math.PI*2;
+      const sp= rm?0:(3.5+Math.random()*8);
+      parts.push({x:ox,y:oy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(rm?0:4),size:6+Math.random()*9,rot:Math.random()*6,vr:(-0.25+Math.random()*0.5),color:colors[i%colors.length],shape:i%3===0?'star':(Math.random()<0.5?'rect':'circ')});
+    }
+    if(rm){ parts.length=0; for(let i=0;i<5;i++){ const a=(i/5)*Math.PI*2; parts.push({x:ox,y:oy,vx:Math.cos(a)*1.2,vy:Math.sin(a)*1.2,size:12,rot:0,vr:0.04,color:'#FFC94D',shape:'star'}); } }
+    const start=performance.now();
+    const dur= rm?900:1450;
+    cancelAnimationFrame(this._raf);
+    const drawStar=(s)=>{ ctx.beginPath(); for(let k=0;k<5;k++){ const ang=-Math.PI/2 + k*2*Math.PI/5; ctx.lineTo(Math.cos(ang)*s, Math.sin(ang)*s); const a2=ang+Math.PI/5; ctx.lineTo(Math.cos(a2)*s*0.45, Math.sin(a2)*s*0.45);} ctx.closePath(); ctx.fill(); };
+    const tick=(now)=>{
+      if(!this.confettiRef) return;
+      const t=(now-start)/dur;
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.scale(dpr,dpr);
+      parts.forEach(p=>{
+        if(!rm){ p.vy+=0.17; p.vx*=0.99; }
+        p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+        const life=1-t; if(life<=0) return;
+        ctx.globalAlpha=Math.max(0,Math.min(1,life*1.4));
+        ctx.fillStyle=p.color;
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        if(p.shape==='rect'){ ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.62); }
+        else if(p.shape==='star'){ drawStar(p.size*0.7); }
+        else { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,7); ctx.fill(); }
+        ctx.rotate(-p.rot); ctx.translate(-p.x,-p.y);
+      });
+      if(t<1){ this._raf=requestAnimationFrame(tick); }
+      else { ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,canvas.width,canvas.height); }
+    };
+    this._raf=requestAnimationFrame(tick);
+  }
+
+  setRM(){ this.setState(s=>{ const nv=!s.reduceMotion; try{localStorage.setItem('cf_rm',nv?'1':'0');}catch(e){} return {reduceMotion:nv}; }); }
+  setVoice(){ this.setState(s=>{ const nv=!s.voiceOn; try{localStorage.setItem('cf_voice',nv?'1':'0');}catch(e){} if(!nv){ try{window.speechSynthesis.cancel();}catch(e){} } return {voiceOn:nv}; }); }
+  setName(v){ this.setState({childName:v}); try{localStorage.setItem('cf_name',v);}catch(e){} }
+
+  renderVals(){
+    const s=this.state;
+    const showStart=s.screen==='start';
+    const showPlay=s.screen==='play';
+    const rm=s.reduceMotion;
+
+    const size=Math.round(Math.max(58, Math.min(160, 560/Math.sqrt(Math.max(1,s.count)))));
+    const slots=[];
+    for(let i=0;i<s.count;i++){
+      const delay=i*55;
+      const anim = rm ? 'none' : ('popIn 520ms cubic-bezier(.34,1.56,.64,1) '+delay+'ms both, bob '+(2400+(i%3)*350)+'ms ease-in-out '+(delay+520)+'ms infinite');
+      slots.push({
+        key: s.roundId+'-'+i,
+        href: s.animal?s.animal.href:'#duck',
+        style:{width:size+'px',height:size+'px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',animation:anim,willChange:'transform'},
+        onClick:()=>this.tapAnimal()
+      });
+    }
+
+    const btnSize = s.tier==='easy'?152:130;
+    const choiceButtons=s.choices.map(v=>{
+      const animating = v===s.animatingValue;
+      const correct = animating && s.animType==='correct';
+      const wrong = animating && s.animType==='wrong';
+      const style={
+        width:btnSize+'px',height:btnSize+'px',borderRadius:'34px',
+        border:'5px solid #5A4633',
+        background: correct?'#FFC94D':'#FFFDF6',
+        color:'#5A4633',
+        fontFamily:"'Baloo 2', cursive", fontWeight:800, fontSize:Math.round(btnSize*0.52)+'px',
+        display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+        boxShadow: correct?'0 10px 0 rgba(205,150,38,0.55)':'0 8px 0 rgba(90,70,51,0.16)',
+        lineHeight:1,padding:0,userSelect:'none',
+        animation: correct?'squashPop 720ms ease both':(wrong?'wrongWobble 600ms ease both':'none')
+      };
+      return { key:v+'-'+s.animKey, value:v, label:String(v), style, onClick:(e)=>this.handleChoice(v,e) };
+    });
+
+    const C=2*Math.PI*30;
+    const gateRingStyle={ strokeDasharray:C+'px', strokeDashoffset:(C*(1-s.gateProgress))+'px' };
+
+    const mkBar=(d)=>({width:'6px',height:'26px',borderRadius:'3px',background:'#5A4633',transformOrigin:'center bottom',
+      transform: s.speaking?'none':'scaleY(0.38)',
+      animation: s.speaking?('soundbar '+(520+d)+'ms ease-in-out '+d+'ms infinite'):'none'});
+
+    const mkSwitch=(on)=>({
+      track:{width:'66px',height:'37px',borderRadius:'19px',background:on?'#9FD9A3':'#D6CFC0',position:'relative',cursor:'pointer',transition:'background 160ms',border:'3px solid #5A4633'},
+      knob:{position:'absolute',top:'2px',left:on?'31px':'2px',width:'29px',height:'29px',borderRadius:'15px',background:'#FFFDF6',border:'2px solid #5A4633',transition:'left 160ms'}
+    });
+
+    return {
+      showStart, showPlay,
+      slots, choiceButtons,
+      onEasy:()=>this.pick('easy'), onMedium:()=>this.pick('medium'), onHard:()=>this.pick('hard'),
+      onReplay:()=>{ this.ensureAudio(); this.speakPrompt(this.state.animal); },
+      onBackToStart:()=>this.backToStart(),
+      gateRingStyle, onGateDown:()=>this.gateDown(), onGateUp:()=>this.gateUp(),
+      settingsOpen:s.settingsOpen, onCloseSettings:()=>this.setState({settingsOpen:false}),
+      childName:s.childName, onName:(e)=>this.setName(e.target.value),
+      onToggleRM:()=>this.setRM(), onToggleVoice:()=>this.setVoice(),
+      rmSw:mkSwitch(s.reduceMotion), voiceSw:mkSwitch(s.voiceOn),
+      bar0:mkBar(0), bar1:mkBar(90), bar2:mkBar(45),
+      mascotStyle:{width:'88px',height:'88px',animation: rm?'none':'floaty 3.2s ease-in-out infinite',transformOrigin:'center'},
+      setConfetti:(el)=>{ this.confettiRef=el; if(el) setTimeout(()=>this.sizeCanvas(),30); },
+    };
+  }
+}
+</script>
+</body>
+</html>
