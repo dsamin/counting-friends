@@ -47,3 +47,4 @@ pnpm-debug.log*
 # verification / screenshot artifacts
 .playwright-mcp/
 /cf-*.png
+/live-*.png
