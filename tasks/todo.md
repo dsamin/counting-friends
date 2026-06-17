@@ -4,8 +4,8 @@
 > runs on the iPad Simulator**, with the web PWA preserved (zero regression). Store submission
 > deferred. Full design spec: `docs/superpowers/specs/2026-06-17-ipad-capacitor-app-design.md`.
 
-- [ ] **Phase 0 — Toolchain:** install CocoaPods (brew); confirm target iPad simulator boots.
-- [ ] **Phase 1 — Native-safe dual build:** gate vite-plugin-pwa behind `CAP_BUILD`; add `build:native` (base `/`, SW off); web build + all tests still green.
+- [x] **Phase 0 — Toolchain:** CocoaPods 1.16.2 (brew, own ruby) on PATH; iPad Pro 11" (M4) sim booted.
+- [x] **Phase 1 — Native-safe dual build:** vite-plugin-pwa gated behind `CAP_BUILD`; `build:native` (cross-env, base `/`, SW off). Verified: native dist root-relative + no SW + grep gates clean; web dist unchanged; 155 tests + lint green.
 - [ ] **Phase 2 — Capacitor scaffold:** install Capacitor 7 + plugins; `capacitor.config.ts`; `cap add ios`; `.gitignore` native artifacts; `cap sync` clean.
 - [ ] **Phase 3 — Native UX:** safe-area insets; lock overscroll; splash + status bar; app icon set from master.
 - [ ] **Phase 4 — Native capabilities:** haptics on celebrate (guarded); WKWebView audio/TTS probe + native fallback.

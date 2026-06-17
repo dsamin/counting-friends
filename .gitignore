@@ -48,3 +48,13 @@ pnpm-debug.log*
 .playwright-mcp/
 /cf-*.png
 /live-*.png
+
+# native (Capacitor / iOS) — commit the project + Podfile + Podfile.lock, ignore the rest
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/build/
+ios/DerivedData/
+ios/capacitor-cordova-ios-plugins/
+**/xcuserdata/
+resources/

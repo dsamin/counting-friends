@@ -19,12 +19,19 @@
     "screenshots": "playwright test e2e/screenshots.spec.ts"
   },
   "dependencies": {
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.6",
+    "@capacitor/haptics": "^7.0.5",
+    "@capacitor/ios": "^7.6.6",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6",
     "@fontsource/baloo-2": "^5.0.0",
     "@fontsource/quicksand": "^5.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.6",
     "@playwright/test": "^1.45.0",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
