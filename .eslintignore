@@ -1,0 +1,7 @@
+dist
+dev-dist
+public/assets
+css
+*.dc.html
+support.js
+node_modules

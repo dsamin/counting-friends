@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Counting Friends — App Icon (1024 master, no mask)</title>
+  <defs>
+    <linearGradient id="cf_icon_sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BBE5F1"></stop>
+      <stop offset="1" stop-color="#E7F3EC"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#cf_icon_sky)"></rect>
+  <circle cx="225" cy="225" r="115" fill="#FFC94D"></circle>
+  <circle cx="225" cy="225" r="150" fill="#FFC94D" opacity="0.2"></circle>
+  <g fill="#FFFFFF" opacity="0.92">
+    <ellipse cx="800" cy="240" rx="92" ry="46"></ellipse>
+    <ellipse cx="868" cy="266" rx="66" ry="38"></ellipse>
+    <ellipse cx="740" cy="266" rx="58" ry="34"></ellipse>
+  </g>
+  <ellipse cx="512" cy="980" rx="640" ry="300" fill="#A6DCA0"></ellipse>
+  <ellipse cx="512" cy="1030" rx="520" ry="260" fill="#8FCF8C"></ellipse>
+  <g transform="translate(512 560) scale(7.6) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="45" cy="65" rx="31" ry="24" fill="#FFC94D"></ellipse>
+    <path d="M33 58 Q51 55 58 71 Q44 78 30 71 Z" fill="#F4B73A"></path>
+    <circle cx="65" cy="38" r="17" fill="#FFC94D"></circle>
+    <path d="M79 33 Q93 35 93 40 Q93 46 79 45 Z" fill="#F0883C"></path>
+    <circle cx="67" cy="35" r="3.6" fill="#5A4633" stroke="none"></circle>
+    <circle cx="58" cy="46" r="4.5" fill="#FF9E7E" stroke="none" opacity="0.65"></circle>
+  </g>
+</svg>

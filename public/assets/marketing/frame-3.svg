@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <title>App Store frame 3 — &#34;No ads. No data. No fail.&#34;</title>
+  <defs>
+    <linearGradient id="f3bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE8C6"></stop><stop offset="1" stop-color="#9FD9A3"></stop></linearGradient>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#f3bg)"></rect>
+  <text x="600" y="180" text-anchor="middle" font-family="&#39;Baloo 2&#39;,sans-serif" font-weight="800" font-size="86" fill="#3F5E3F">No ads.</text>
+  <text x="600" y="278" text-anchor="middle" font-family="&#39;Baloo 2&#39;,sans-serif" font-weight="800" font-size="86" fill="#3F5E3F">No data. No fail.</text>
+  <text x="600" y="350" text-anchor="middle" font-family="&#39;Quicksand&#39;,sans-serif" font-weight="600" font-size="38" fill="#4D6B4D">A safe place for little ones to play</text>
+  <g transform="translate(150 430)">
+    <rect x="-18" y="-18" width="936" height="1106" rx="60" fill="#26211D"></rect>
+    <clipPath id="f3clip"><rect width="900" height="1070" rx="44"></rect></clipPath>
+    <g clip-path="url(#f3clip)">
+      <rect width="900" height="1070" fill="#FBF7EE"></rect>
+      
+      <g transform="translate(450 270) scale(3.4) translate(-50 -50)" stroke="#5A4633" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="39" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(-13 39 27)"></ellipse><ellipse cx="61" cy="27" rx="8.5" ry="23" fill="#A8D8E8" transform="rotate(13 61 27)"></ellipse>
+        <ellipse cx="39" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(-13 39 29)"></ellipse><ellipse cx="61" cy="29" rx="3.6" ry="14" fill="#FFD2C7" stroke="none" transform="rotate(13 61 29)"></ellipse>
+        <circle cx="50" cy="61" r="29" fill="#A8D8E8"></circle><circle cx="40" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle><circle cx="60" cy="58" r="4.3" fill="#5A4633" stroke="none"></circle>
+        <path d="M46 65 L54 65 L50 69 Z" fill="#FF8A7A" stroke="none"></path><path d="M50 69 Q46 73 42 71 M50 69 Q54 73 58 71" stroke-width="3" fill="none"></path>
+      </g>
+      
+      <g font-family="&#39;Quicksand&#39;,sans-serif" font-weight="700" font-size="44" fill="#5A4633">
+        <g transform="translate(90 600)">
+          <rect width="720" height="100" rx="28" fill="#EAF6E8"></rect>
+          <circle cx="64" cy="50" r="26" fill="#9FD9A3" stroke="#5A4633" stroke-width="6"></circle>
+          <path d="M52 50 l9 9 18-20" fill="none" stroke="#5A4633" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+          <text x="120" y="66">No ads, ever</text>
+        </g>
+        <g transform="translate(90 720)">
+          <rect width="720" height="100" rx="28" fill="#EAF6E8"></rect>
+          <circle cx="64" cy="50" r="26" fill="#9FD9A3" stroke="#5A4633" stroke-width="6"></circle>
+          <path d="M52 50 l9 9 18-20" fill="none" stroke="#5A4633" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+          <text x="120" y="66">No data collected</text>
+        </g>
+        <g transform="translate(90 840)">
+          <rect width="720" height="100" rx="28" fill="#EAF6E8"></rect>
+          <circle cx="64" cy="50" r="26" fill="#9FD9A3" stroke="#5A4633" stroke-width="6"></circle>
+          <path d="M52 50 l9 9 18-20" fill="none" stroke="#5A4633" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+          <text x="120" y="66">No way to fail</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

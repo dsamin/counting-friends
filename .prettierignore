@@ -1,0 +1,18 @@
+dist
+dev-dist
+node_modules
+package-lock.json
+
+# Asset library & legacy css source (kept verbatim)
+public/assets
+css
+src/styles/tokens.css
+src/styles/app.css
+
+# Design-source files (not owned by the app build)
+*.dc.html
+support.js
+10-counting-friends.md
+HANDOFF.md
+assets/README.md
+tasks/
