@@ -11,6 +11,7 @@ import ReplayPill from '../components/ReplayPill';
 import ParentalGate from '../components/ParentalGate';
 import SettingsSheet from '../components/SettingsSheet';
 import Confetti, { type ConfettiHandle } from '../components/Confetti';
+import { celebrate, tap } from '../native/feedback';
 
 /**
  * PlayScreen — the counting loop. Top chrome (back + replay), the adaptive
@@ -67,6 +68,9 @@ export default function PlayScreen({
       cy = r.top + r.height / 2 - hostRect.top;
     }
     confettiRef.current?.burst(cx, cy, reduceMotion, confettiDensity);
+    // Native success haptic, in lockstep with the confetti. Suppressed under
+    // reduce-motion to honour the calm/low-stimulation posture. No-op on web.
+    if (!reduceMotion) celebrate();
     // animKey changes on every choice, so repeated correct rounds re-fire.
   }, [
     state.status,
@@ -126,7 +130,10 @@ export default function PlayScreen({
             <div
               key={`${state.roundId}-${i}`}
               className="cf-animal"
-              onClick={actions.tapAnimal}
+              onClick={() => {
+                if (!reduceMotion) tap(); // light native tick; no-op on web
+                actions.tapAnimal();
+              }}
               style={{
                 width: size,
                 height: size,

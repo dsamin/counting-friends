@@ -123,7 +123,7 @@
 }
 
 /* — Parental gate ————————————————————————————————————————————— */
-.cf-gate { position: absolute; bottom: 22px; right: 22px;
+.cf-gate { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); right: max(22px, env(safe-area-inset-right));
            width: 66px; height: 66px; cursor: pointer; touch-action: none;
            display: flex; align-items: center; justify-content: center; }
 .cf-gate-ring { transform: rotate(-90deg); }            /* stroke-dashoffset driven in JS, 0→full over --cf-gate-hold */
