@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { Rng, Tier } from './types';
+import type { CountRound } from './activities/types';
+import { count } from './activities/count';
 import { generateRound, praiseLine, promptLine } from './round';
 import { PRAISE, TIMING } from './constants';
 import {
@@ -141,7 +143,9 @@ export function useGame(options: UseGameOptions = {}): {
     (tier: Tier) => {
       const round = generateRound(tier, rngRef.current);
       dispatch({ type: 'DEAL_ROUND', round });
-      audioRef.current.speak(promptLine(round.animal));
+      // Route the spoken prompt through the count Activity module (v2 seam).
+      const cr: CountRound = { kind: 'count', ...round };
+      audioRef.current.speak(count.prompt(cr).speech);
       startIdle();
     },
     [startIdle],
@@ -164,7 +168,15 @@ export function useGame(options: UseGameOptions = {}): {
       audioRef.current.ensureAudio();
       clearIdle();
 
-      const correct = value === s.count;
+      // Correctness now comes from the Activity module's pure `evaluate` (v2
+      // seam), not an inline compare. For count, roundComplete === correct.
+      const cr: CountRound = {
+        kind: 'count',
+        count: s.count,
+        animal: s.animal,
+        choices: s.choices,
+      };
+      const { correct } = count.evaluate(cr, { kind: 'tile', value });
       dispatch({ type: 'CHOOSE', value, correct });
 
       if (correct) {

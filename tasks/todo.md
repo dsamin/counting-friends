@@ -1,3 +1,49 @@
+# Counting Friends v2 — "Counting Friends & Collections" — 2026-06-24
+
+> Goal: extend the app with more activities, a collectibles/streak reward system that says the child's
+> name and progresses levels, left↔right Match Up, adaptive difficulty — TDD, all builds green, ready
+> to test on iPad. Source of truth: `docs/superpowers/specs/2026-06-24-counting-friends-v2-FINAL.md`.
+> Branch: `feat/v2-counting-collections`. Baseline at start: 155 tests + typecheck + both builds green.
+>
+> Release cut-line (§15): 1a + 1b + 2a + (Find the Number, Quick Look, Match Up). Hard floor: 1 + 2a + Match Up.
+> Hard gate every phase: `typecheck && test && build && build:native` green; no merged code with red tests.
+
+## Phase 1a — Activity framework behind the existing Tier engine (zero behavior change)
+- [ ] `src/game/activities/types.ts` — ActivityId, Level, AnswerPayload, SpeechAndCue, EvalResult, Round union, ActivityModule (per §4.1)
+- [ ] `src/game/activities/count.ts` + tests — count module; **knobs from Tier, choices kept SORTED (1a parity)**; `evaluate()` returns `{correct, roundComplete}`
+- [ ] `src/game/activities/index.ts` — registry `Record<ActivityId, ActivityModule<Round>>`
+- [ ] Route reducer/useGame/PlayScreen through `activity.evaluate()` (correctness leaves useGame); add `round`/`activityId` to state alongside flat count/choices/animal
+- [ ] **Exit gate:** v1 test files unchanged + passing (155); typecheck+test+build+build:native green; Playwright smoke plays one count round
+
+## Phase 1b — Tier→Level + Home Board
+- [ ] `src/game/progression.ts` (+ tests) — frozen `PROGRESSION`, `applyAttempt`, `nextLevel` (5/6 OR clean-streak-4, ease-back, cooldown, fast-first-climb)
+- [ ] Tier→Level swap (§4.4 field-fate): remove `tier`, count reads from `round`; introduce shuffle (§5.9)
+- [ ] `src/screens/HomeBoard.tsx` — wordless recommended tiles (3–4) + audio-on-tap preview + Star Jar/Sticker Book tiles; fold in v1 mascot/lockup warmth
+- [ ] `GO_HOME` replaces hardcoded BACK→start; `screen: 'home'|'play'|'stickers'`
+- [ ] persistence v2 + migration + `loadV2State()` (per-key try/catch) + malformed-JSON guard; first-run starting-level seed (§6.5)
+- [ ] **Replace** StartScreen/tier/PICK_TIER unit + E2E tests against Home Board (rewrite, don't delete)
+- [ ] **Exit gate:** all tests green; smoke renders Home Board + enters count; migration + malformed-JSON tests pass
+
+## Phase 2a — Reward spine (the headline carrot)
+- [ ] `src/game/rewards.ts` (+ tests) — frozen `REWARDS`, `streakCallout` (activity-aware, name-bearing), star/streak/milestone logic
+- [ ] `src/game/content.ts` (+ tests) — friends + 1 pack catalog + 2 unlock thresholds; §8.1 integrity invariants
+- [ ] First art wave: **3 new friends + 1 pack of 3 = 6 SVGs** (characters.ts + CharacterDefs.tsx)
+- [ ] `StarJar`, `LevelUpBanner`, `UnlockReveal` components + Sticker Book wired to real unlocks
+- [ ] Celebration arbiter (§7.6: unlock > level-up > streak, one big overlay/answer); per-animation RM fallbacks (§12.1)
+- [ ] Engine: award stars (per round), streak + name callout, level-up trigger
+- [ ] **Exit gate:** E2E — 3-in-a-row fires banner w/ configured name; star threshold writes `cf_unlocks` + UnlockReveal; no-fail guard test passes; builds green
+
+## Phase 2b — New activities (Match Up LAST)
+- [ ] `numeral.ts` + component + tests — Find the Number (plain distractors, lookAlike=false)
+- [ ] `quicklook.ts` + component + tests — Quick Look (reveal via engine TIMING timer; `revealMs>0`, `<1000⇒count≤5`)
+- [ ] **Match Up** — dedicated E2E **written first**; `match.ts` + `MatchActivity` + `RibbonLink`; tap-then-tap; wrong connect = silent non-event; round-complete celebration; portrait pairCount≤3
+- [ ] **Exit gate:** per-activity E2E to a correct answer; Match Up E2E links all pairs portrait+landscape; no red tests
+
+## Phase 3 (fast-follow) — Compare & Order (+ Count-Along remediation, 6/9 look-alike)
+## Phase 4 (fast-follow, gated) — One More/One Less, Add & Take Away + mastery rung gate
+
+---
+
 # Counting Friends — Native iPad App (Capacitor) — 2026-06-17
 
 > Goal: a genuine native iPadOS app (Capacitor wrapper of the existing PWA) that **builds and
