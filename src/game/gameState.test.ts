@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { CountRound } from './activities/types';
 import type { MasteryRecord } from './persistence';
+import { defaultUnlocks } from './content';
 import { CHARACTERS } from './characters';
 import { TIMING } from './constants';
 import {
@@ -42,6 +43,9 @@ describe('initialState', () => {
       round: null,
       mastery: MASTERY,
       streak: 0,
+      stars: 0,
+      unlocks: defaultUnlocks(),
+      overlay: null,
       count: 0,
       choices: [],
       animal: CHARACTERS[0],
@@ -153,6 +157,37 @@ describe('streak + mastery actions', () => {
       window: [true, true, false],
     });
     expect(next.mastery.count).toEqual({ level: 3, window: [true, true, false] });
+  });
+});
+
+describe('reward actions', () => {
+  it('AWARD_STARS raises the star total but never lowers it (monotonic)', () => {
+    const s = freshState({ stars: 5 });
+    expect(reducer(s, { type: 'AWARD_STARS', stars: 8 }).stars).toBe(8);
+    // A lower value can never decrease the count.
+    expect(reducer(s, { type: 'AWARD_STARS', stars: 2 }).stars).toBe(5);
+  });
+
+  it('SET_UNLOCKS replaces the unlocks state', () => {
+    const unlocks = { friends: ['duck', 'dog'], packs: ['shapes'], activities: ['count'] };
+    expect(reducer(freshState(), { type: 'SET_UNLOCKS', unlocks }).unlocks).toEqual(
+      unlocks,
+    );
+  });
+
+  it('SHOW_OVERLAY / CLOSE_OVERLAY set and clear the active overlay', () => {
+    const shown = reducer(freshState(), {
+      type: 'SHOW_OVERLAY',
+      overlay: { kind: 'celebrate', line: 'Five in a row!' },
+    });
+    expect(shown.overlay).toEqual({ kind: 'celebrate', line: 'Five in a row!' });
+    expect(reducer(shown, { type: 'CLOSE_OVERLAY' }).overlay).toBeNull();
+  });
+
+  it('dealing a fresh round clears any overlay', () => {
+    const s = freshState({ overlay: { kind: 'unlock', characterKey: 'dog' } });
+    const next = reducer(s, { type: 'DEAL_ROUND', round: ROUND, activityId: 'count' });
+    expect(next.overlay).toBeNull();
   });
 });
 

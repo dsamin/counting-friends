@@ -5,6 +5,7 @@ import SettingsSheet from './SettingsSheet';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import { CHARACTERS } from '../game/characters';
+import { defaultUnlocks } from '../game/content';
 
 function baseState(over: Partial<GameState> = {}): GameState {
   return {
@@ -13,6 +14,9 @@ function baseState(over: Partial<GameState> = {}): GameState {
     round: null,
     mastery: { count: { level: 1, window: [] } },
     streak: 0,
+    stars: 0,
+    unlocks: defaultUnlocks(),
+    overlay: null,
     count: 2,
     choices: [1, 2, 3],
     animal: CHARACTERS[0],
@@ -38,6 +42,8 @@ function spyActions(): GameActions {
     tapAnimal: vi.fn(),
     replay: vi.fn(),
     back: vi.fn(),
+    openStickers: vi.fn(),
+    closeOverlay: vi.fn(),
     gateDown: vi.fn(),
     gateUp: vi.fn(),
     closeSettings: vi.fn(),

@@ -1,53 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import type { Rng, Tier } from './types';
-import {
-  tierMax,
-  tierChoices,
-  animalSize,
-  confettiCount,
-  generateRound,
-  praiseLine,
-  promptLine,
-} from './round';
+import { animalSize, confettiCount, praiseLine, promptLine } from './round';
 import { CHARACTERS } from './characters';
 import { CONFETTI } from './constants';
-
-/**
- * Array-backed deterministic RNG. Returns scripted values in order, then
- * cycles. Each value must be in [0, 1) like Math.random.
- */
-function stubRng(values: number[]): Rng {
-  let i = 0;
-  return () => {
-    const v = values[i % values.length];
-    i += 1;
-    return v;
-  };
-}
-
-describe('tierMax', () => {
-  it('returns 5 for easy', () => {
-    expect(tierMax('easy')).toBe(5);
-  });
-  it('returns 10 for medium', () => {
-    expect(tierMax('medium')).toBe(10);
-  });
-  it('returns 20 for hard', () => {
-    expect(tierMax('hard')).toBe(20);
-  });
-});
-
-describe('tierChoices', () => {
-  it('returns 3 for easy', () => {
-    expect(tierChoices('easy')).toBe(3);
-  });
-  it('returns 4 for medium', () => {
-    expect(tierChoices('medium')).toBe(4);
-  });
-  it('returns 4 for hard', () => {
-    expect(tierChoices('hard')).toBe(4);
-  });
-});
 
 describe('animalSize', () => {
   it('clamps small counts to the max of 160', () => {
@@ -91,87 +45,6 @@ describe('confettiCount', () => {
     expect(confettiCount(false, 'calm')).toBe(CONFETTI.calm);
     expect(confettiCount(false, 'calm')).toBe(34);
   });
-});
-
-describe('generateRound', () => {
-  it('derives count and animal from the rng (deterministic stub)', () => {
-    // easy: max 5, choices 3.
-    // rng[0] for count: 0.5 -> 1 + floor(0.5*5)=1+2=3
-    // rng[1] for animal: 0 -> CHARACTERS[0] = duck
-    // distractors: need 2 more. rng[2]=0 -> 1, rng[3]=0.999 -> 1+floor(4.995)=5
-    const rng = stubRng([0.5, 0, 0, 0.999]);
-    const round = generateRound('easy', rng);
-    expect(round.count).toBe(3);
-    expect(round.animal).toBe(CHARACTERS[0]);
-    expect(round.animal.key).toBe('duck');
-    expect(round.choices).toEqual([1, 3, 5]);
-  });
-
-  it('always includes the correct count even if rng never produces it', () => {
-    // count = 2; distractors rng all produce values != 2
-    // rng[0]=0.2 -> 1+floor(0.2*5)=1+1=2
-    // animal rng[1]=0
-    // distractor draws: 0 -> 1, 0 -> 1 (dup), 0.6 -> 1+floor(3)=4
-    const rng = stubRng([0.2, 0, 0, 0, 0.6]);
-    const round = generateRound('easy', rng);
-    expect(round.count).toBe(2);
-    expect(round.choices).toContain(2);
-    expect(round.choices).toHaveLength(3);
-  });
-
-  it('selects the right animal by index', () => {
-    // animal index = floor(rng * 4). rng[1] = 0.8 -> floor(3.2) = 3 -> bunny
-    const rng = stubRng([0.99, 0.8, 0.1, 0.4, 0.7]);
-    const round = generateRound('medium', rng);
-    expect(round.animal.key).toBe('bunny');
-    expect(round.animal).toBe(CHARACTERS[3]);
-  });
-
-  it('produces tierChoices unique sorted choices for medium', () => {
-    const rng = stubRng([0.05, 0.0, 0.3, 0.55, 0.85, 0.95]);
-    const round = generateRound('medium', rng);
-    expect(round.choices).toHaveLength(tierChoices('medium'));
-    const sorted = [...round.choices].sort((a, b) => a - b);
-    expect(round.choices).toEqual(sorted);
-    expect(new Set(round.choices).size).toBe(round.choices.length);
-  });
-
-  it('defaults to Math.random when no rng is supplied', () => {
-    const round = generateRound('hard');
-    expect(round.count).toBeGreaterThanOrEqual(1);
-    expect(round.count).toBeLessThanOrEqual(20);
-    expect(round.choices).toContain(round.count);
-  });
-
-  const tiers: Tier[] = ['easy', 'medium', 'hard'];
-  for (const tier of tiers) {
-    it(`upholds all invariants under fuzzing for ${tier}`, () => {
-      const max = tierMax(tier);
-      const nChoices = tierChoices(tier);
-      for (let i = 0; i < 500; i += 1) {
-        const round = generateRound(tier, Math.random);
-        // count in 1..max
-        expect(round.count).toBeGreaterThanOrEqual(1);
-        expect(round.count).toBeLessThanOrEqual(max);
-        // choices length
-        expect(round.choices).toHaveLength(nChoices);
-        // includes the correct count
-        expect(round.choices).toContain(round.count);
-        // unique
-        expect(new Set(round.choices).size).toBe(round.choices.length);
-        // sorted ascending
-        const sorted = [...round.choices].sort((a, b) => a - b);
-        expect(round.choices).toEqual(sorted);
-        // all within 1..max
-        for (const c of round.choices) {
-          expect(c).toBeGreaterThanOrEqual(1);
-          expect(c).toBeLessThanOrEqual(max);
-        }
-        // animal is one of CHARACTERS
-        expect(CHARACTERS).toContain(round.animal);
-      }
-    });
-  }
 });
 
 describe('praiseLine', () => {

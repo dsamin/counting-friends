@@ -40,6 +40,14 @@ describe('count.generate', () => {
     expect(round.choices).toEqual([1, 5, 3]);
   });
 
+  it('only picks animals from the provided unlocked pool', () => {
+    const pool = [CHARACTERS[0], CHARACTERS[1]]; // duck, cat only
+    for (let i = 0; i < 100; i += 1) {
+      const r = count.generate(3, Math.random, pool);
+      expect(pool).toContain(r.animal);
+    }
+  });
+
   it('upholds invariants under fuzzing across levels', () => {
     for (const level of [1, 2, 3, 4, 5, 6]) {
       const { max, choiceCount } = countParams(level);

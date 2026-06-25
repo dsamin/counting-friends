@@ -35,10 +35,9 @@ function makeAudio(): AudioEngine & {
 }
 
 /**
- * Deterministic RNG: cycles a fixed list. generateRound consumes rng() for
- * count, then animal, then for filler choices. A constant 0 makes count=1,
- * animal=CHARACTERS[0], and fillers also map to 1 (deduped) — so choices
- * collapse and we exercise the guard; instead use a stable sequence.
+ * Deterministic RNG: cycles a fixed list. count.generate consumes rng() for
+ * the count, then the animal, then the distractor choices (then a shuffle).
+ * A stable, varied sequence keeps the dealt round well-formed.
  */
 function seqRng(values: number[]): Rng {
   let i = 0;
@@ -134,6 +133,62 @@ describe('adaptive progression', () => {
     const wrong = view.result.current.state.choices.find((c) => c !== next)!;
     act(() => view.result.current.actions.choose(wrong));
     expect(view.result.current.state.streak).toBe(0);
+  });
+});
+
+describe('rewards', () => {
+  it('a 3-in-a-row streak speaks a name-bearing callout and shows a celebrate banner', () => {
+    const { audio, view } = setup();
+    act(() => view.result.current.actions.setName('Jayden'));
+    act(() => view.result.current.actions.enterActivity('count'));
+    for (let i = 0; i < 3; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      if (i < 2) act(() => vi.advanceTimersByTime(TIMING.advance));
+    }
+    const overlay = view.result.current.state.overlay;
+    expect(overlay?.kind).toBe('celebrate');
+    expect(overlay?.kind === 'celebrate' && overlay.line).toContain('Jayden');
+    expect(
+      audio.calls.speak.some((t) => t.includes('Jayden') && /in a row/i.test(t)),
+    ).toBe(true);
+  });
+
+  it('stars never decrease across a wrong-then-right sequence (no-fail guard)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    const afterFirst = view.result.current.state.stars;
+    expect(afterFirst).toBeGreaterThanOrEqual(1);
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+
+    const next = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== next)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
+    // correcting the same round still never lowers stars
+    act(() => view.result.current.actions.choose(next));
+    expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
+  });
+
+  it('crossing a star threshold records the unlock and shows the unlock reveal', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    let unlocked = false;
+    for (let i = 0; i < 40 && !unlocked; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      if (view.result.current.state.overlay?.kind === 'unlock') {
+        unlocked = true;
+      } else {
+        act(() => vi.advanceTimersByTime(TIMING.advance));
+      }
+    }
+    expect(unlocked).toBe(true);
+    const stored = JSON.parse(localStorage.getItem('cf_unlocks') || '{}');
+    expect(stored.friends).toContain('dog');
   });
 });
 

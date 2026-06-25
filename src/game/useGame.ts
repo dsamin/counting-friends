@@ -3,6 +3,7 @@ import type { Rng, Tier } from './types';
 import type { ActivityId } from './activities/types';
 import { getActivity, ACTIVITIES } from './activities';
 import { praiseLine } from './round';
+import { getCharacter } from './characters';
 import { PRAISE, TIMING } from './constants';
 import {
   saveName,
@@ -12,10 +13,21 @@ import {
   loadV2State,
   migrateToV2,
   saveMastery,
+  saveStars,
+  saveStreakBest,
+  saveUnlocks,
   type MasteryRecord,
   type V2Defaults,
 } from './persistence';
 import { applyAttempt, nextLevel } from './progression';
+import { starsForRound, isStreakMilestone, streakCallout } from './rewards';
+import {
+  defaultUnlocks,
+  unlockedCharacters,
+  newlyUnlocked,
+  applyUnlock,
+  keysForUnlock,
+} from './content';
 import { type AudioEngine, silentAudio } from './audio';
 import {
   type GameState,
@@ -38,6 +50,8 @@ export interface GameActions {
   tapAnimal(): void;
   replay(): void;
   back(): void; // → home
+  openStickers(): void;
+  closeOverlay(): void;
   gateDown(): void;
   gateUp(): void;
   closeSettings(): void;
@@ -46,21 +60,11 @@ export interface GameActions {
   toggleVoice(): void;
 }
 
-/** Friends always available; release activities (grows as phases land). */
-const BASE_FRIENDS = ['duck', 'cat', 'frog', 'bunny'];
-/** Activities available in this build (the registry decides what's renderable). */
-const RELEASE_ACTIVITIES: ActivityId[] = ['count'];
-
 function makeV2Defaults(startLevel: number): V2Defaults {
+  const unlocks = defaultUnlocks();
   const mastery: Record<string, MasteryRecord> = {};
-  for (const id of RELEASE_ACTIVITIES) mastery[id] = { level: startLevel, window: [] };
-  return {
-    stars: 0,
-    streakBest: 0,
-    mastery,
-    unlocks: { friends: [...BASE_FRIENDS], packs: [], activities: [...RELEASE_ACTIVITIES] },
-    settings: {},
-  };
+  for (const id of unlocks.activities) mastery[id] = { level: startLevel, window: [] };
+  return { stars: 0, streakBest: 0, mastery, unlocks, settings: {} };
 }
 
 /**
@@ -72,6 +76,7 @@ function makeV2Defaults(startLevel: number): V2Defaults {
 export function useGame(options: UseGameOptions = {}): {
   state: GameState;
   actions: GameActions;
+  streakBest: number;
 } {
   const audio = options.audio ?? silentAudio;
   const rng = options.rng ?? Math.random;
@@ -82,6 +87,10 @@ export function useGame(options: UseGameOptions = {}): {
     }),
     [options.defaultTier, options.voiceEnabled],
   );
+
+  /** Personal-best streak (persisted on a new best). Declared before the reducer
+   *  initializer, which seeds it from stored v2 state. */
+  const streakBestRef = useRef(0);
 
   const [state, dispatch] = useReducer(reducer, undefined, () => {
     const prefs = loadPrefs({
@@ -97,7 +106,13 @@ export function useGame(options: UseGameOptions = {}): {
       v2.mastery.count.level = migration.startingLevel;
       saveMastery(v2.mastery);
     }
-    return initialState(prefs, { mastery: v2.mastery, activityId: 'count' });
+    streakBestRef.current = v2.streakBest;
+    return initialState(prefs, {
+      mastery: v2.mastery,
+      stars: v2.stars,
+      unlocks: v2.unlocks,
+      activityId: 'count',
+    });
   });
 
   const stateRef = useRef(state);
@@ -186,7 +201,9 @@ export function useGame(options: UseGameOptions = {}): {
   const dealRound = useCallback(
     (activityId: ActivityId) => {
       const activity = getActivity(activityId);
-      const round = activity.generate(levelFor(activityId), rngRef.current);
+      // Only unlocked collectibles appear in rotation (§7.7).
+      const pool = unlockedCharacters(stateRef.current.unlocks);
+      const round = activity.generate(levelFor(activityId), rngRef.current, pool);
       dispatch({ type: 'DEAL_ROUND', round, activityId });
       firstAttemptRef.current = true;
       audioRef.current.speak(
@@ -207,23 +224,86 @@ export function useGame(options: UseGameOptions = {}): {
   );
 
   /** Record a round's first-attempt outcome: streak + adaptive mastery. */
-  const recordOutcome = useCallback((activityId: ActivityId, correct: boolean) => {
-    const s = stateRef.current;
-    const newStreak = correct ? s.streak + 1 : 0;
-    dispatch({ type: 'SET_STREAK', streak: newStreak });
+  const recordOutcome = useCallback(
+    (activityId: ActivityId, correct: boolean): { newStreak: number; leveledUp: boolean } => {
+      const s = stateRef.current;
+      const newStreak = correct ? s.streak + 1 : 0;
+      dispatch({ type: 'SET_STREAK', streak: newStreak });
 
-    const prev = s.mastery[activityId] ?? { level: 1, window: [] };
-    const window = applyAttempt(prev.window, correct);
-    const since = sinceChangeRef.current[activityId] ?? Infinity;
-    const { level, leveledUp } = nextLevel(prev.level, window, newStreak, since);
-    sinceChangeRef.current[activityId] =
-      level === prev.level ? since + 1 : 0;
+      const prev = s.mastery[activityId] ?? { level: 1, window: [] };
+      const window = applyAttempt(prev.window, correct);
+      const since = sinceChangeRef.current[activityId] ?? Infinity;
+      const { level, leveledUp } = nextLevel(prev.level, window, newStreak, since);
+      sinceChangeRef.current[activityId] = level === prev.level ? since + 1 : 0;
 
-    dispatch({ type: 'SET_MASTERY', activityId, level, window });
-    const nextMastery = { ...s.mastery, [activityId]: { level, window } };
-    saveMastery(nextMastery);
-    return { leveledUp };
-  }, []);
+      dispatch({ type: 'SET_MASTERY', activityId, level, window });
+      const nextMastery = { ...s.mastery, [activityId]: { level, window } };
+      saveMastery(nextMastery);
+      return { newStreak, leveledUp };
+    },
+    [],
+  );
+
+  /**
+   * Award stars + run the celebration arbiter (§7.6): at most ONE big overlay
+   * per answer (unlock > level-up > streak); the rest fall through to ordinary
+   * praise. Stars are monotonic and persisted. Called only on a round-complete.
+   */
+  const handleReward = useCallback(
+    (activityId: ActivityId, streak: number, leveledUp: boolean) => {
+      const s = stateRef.current;
+      const milestone = isStreakMilestone(streak);
+      const prevStars = s.stars;
+      const newStars = prevStars + starsForRound({ milestone, leveledUp });
+      dispatch({ type: 'AWARD_STARS', stars: newStars });
+      saveStars(newStars);
+      if (streak > streakBestRef.current) {
+        streakBestRef.current = streak;
+        saveStreakBest(streak);
+      }
+
+      // 1) Unlock crossing wins the overlay.
+      const unlocked = newlyUnlocked(prevStars, newStars);
+      if (unlocked.length > 0) {
+        let u = s.unlocks;
+        for (const unlock of unlocked) u = applyUnlock(u, unlock);
+        dispatch({ type: 'SET_UNLOCKS', unlocks: u });
+        saveUnlocks(u);
+        const key = keysForUnlock(unlocked[0])[0];
+        dispatch({ type: 'SHOW_OVERLAY', overlay: { kind: 'unlock', characterKey: key } });
+        const friendName = key ? getCharacter(key as never).name : 'a new friend';
+        audioRef.current.speak(`You found a new friend! Say hello to ${friendName}!`);
+        return;
+      }
+
+      // 2) Streak milestone — the name-bearing callout banner.
+      if (milestone) {
+        const line = streakCallout(streak, activityId, s.childName || undefined);
+        dispatch({ type: 'SHOW_OVERLAY', overlay: { kind: 'celebrate', line } });
+        audioRef.current.speak(line);
+        return;
+      }
+
+      // 3) Quiet level-up.
+      if (leveledUp) {
+        const name = s.childName ? `Great job, ${s.childName}! ` : '';
+        const line = `${name}Let's try something a little bigger!`;
+        dispatch({ type: 'SHOW_OVERLAY', overlay: { kind: 'celebrate', line } });
+        audioRef.current.speak(line);
+        return;
+      }
+
+      // 4) Ordinary clean answer — the usual praise.
+      audioRef.current.speak(
+        praiseLine(
+          s.count,
+          PRAISE[Math.floor(rngRef.current() * PRAISE.length)],
+          s.childName || undefined,
+        ),
+      );
+    },
+    [],
+  );
 
   const choose = useCallback(
     (value: number) => {
@@ -240,19 +320,18 @@ export function useGame(options: UseGameOptions = {}): {
       dispatch({ type: 'CHOOSE', value, correct });
 
       // One adaptive outcome per round — the first attempt only.
-      if (firstAttemptRef.current) {
+      const wasFirst = firstAttemptRef.current;
+      let streak = s.streak;
+      let leveledUp = false;
+      if (wasFirst) {
         firstAttemptRef.current = false;
-        recordOutcome(s.activityId, correct);
+        ({ newStreak: streak, leveledUp } = recordOutcome(s.activityId, correct));
       }
 
       if (correct && roundComplete) {
         audioRef.current.playPop();
-        const praise = praiseLine(
-          s.count,
-          PRAISE[Math.floor(rngRef.current() * PRAISE.length)],
-          s.childName || undefined,
-        );
-        audioRef.current.speak(praise);
+        // Stars/streak/level-up/unlock celebration (one overlay max).
+        handleReward(s.activityId, wasFirst ? streak : s.streak, wasFirst && leveledUp);
         const delay = s.reduceMotion
           ? TIMING.advanceReduceMotion
           : TIMING.advance;
@@ -276,7 +355,16 @@ export function useGame(options: UseGameOptions = {}): {
         // Note: do NOT re-arm idle on a wrong answer (matches v1).
       }
     },
-    [clearIdle, clearAdvance, clearRevert, clearReask, dealRound, recordOutcome, speakPrompt],
+    [
+      clearIdle,
+      clearAdvance,
+      clearRevert,
+      clearReask,
+      dealRound,
+      recordOutcome,
+      handleReward,
+      speakPrompt,
+    ],
   );
 
   const tapAnimal = useCallback(() => {
@@ -296,6 +384,15 @@ export function useGame(options: UseGameOptions = {}): {
     audioRef.current.cancelSpeech();
     dispatch({ type: 'GO_HOME' });
   }, [clearAllTimers, cancelGate]);
+
+  const openStickers = useCallback(() => {
+    audioRef.current.ensureAudio();
+    dispatch({ type: 'OPEN_STICKERS' });
+  }, []);
+
+  const closeOverlay = useCallback(() => {
+    dispatch({ type: 'CLOSE_OVERLAY' });
+  }, []);
 
   const gateDown = useCallback(() => {
     cancelGate();
@@ -368,6 +465,8 @@ export function useGame(options: UseGameOptions = {}): {
       tapAnimal,
       replay,
       back,
+      openStickers,
+      closeOverlay,
       gateDown,
       gateUp,
       closeSettings,
@@ -381,6 +480,8 @@ export function useGame(options: UseGameOptions = {}): {
       tapAnimal,
       replay,
       back,
+      openStickers,
+      closeOverlay,
       gateDown,
       gateUp,
       closeSettings,
@@ -393,5 +494,5 @@ export function useGame(options: UseGameOptions = {}): {
   // Expose the registry-backed available activities for the Home Board.
   void ACTIVITIES;
 
-  return { state, actions };
+  return { state, actions, streakBest: streakBestRef.current };
 }

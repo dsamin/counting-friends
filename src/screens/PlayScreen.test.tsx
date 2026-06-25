@@ -5,6 +5,7 @@ import PlayScreen from './PlayScreen';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import { CHARACTERS } from '../game/characters';
+import { defaultUnlocks } from '../game/content';
 import { promptLine } from '../game/round';
 
 function baseState(over: Partial<GameState> = {}): GameState {
@@ -14,6 +15,9 @@ function baseState(over: Partial<GameState> = {}): GameState {
     round: null,
     mastery: { count: { level: 1, window: [] } },
     streak: 0,
+    stars: 0,
+    unlocks: defaultUnlocks(),
+    overlay: null,
     count: 3,
     choices: [2, 3, 4],
     animal: CHARACTERS[0], // duck
@@ -39,6 +43,8 @@ function spyActions(): GameActions {
     tapAnimal: vi.fn(),
     replay: vi.fn(),
     back: vi.fn(),
+    openStickers: vi.fn(),
+    closeOverlay: vi.fn(),
     gateDown: vi.fn(),
     gateUp: vi.fn(),
     closeSettings: vi.fn(),

@@ -3,6 +3,7 @@ import { ACTIVITIES } from '../game/activities';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import CharacterSprite from '../components/CharacterSprite';
+import StarJar from '../components/StarJar';
 
 /**
  * HomeBoard — the wordless "Play Board" that replaces v1's tier picker. Difficulty
@@ -84,6 +85,16 @@ export default function HomeBoard({ state, actions }: HomeBoardProps) {
         justifyContent: 'center',
       }}
     >
+      {/* Star Jar → the Sticker Book collection. */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'max(18px, env(safe-area-inset-top))',
+          right: 'max(18px, env(safe-area-inset-right))',
+        }}
+      >
+        <StarJar stars={state.stars} onClick={actions.openStickers} />
+      </div>
       <div
         style={{
           display: 'flex',

@@ -19,10 +19,11 @@ export function countParams(level: Level): { max: number; choiceCount: number } 
 export const count: ActivityModule<CountRound> = {
   id: 'count',
 
-  generate(level, rng) {
+  generate(level, rng, pool) {
     const { max, choiceCount } = countParams(level);
+    const friends = pool && pool.length > 0 ? pool : CHARACTERS;
     const n = 1 + Math.floor(rng() * max); // draw 1: the count
-    const animal = CHARACTERS[Math.floor(rng() * CHARACTERS.length)]; // draw 2: animal
+    const animal = friends[Math.floor(rng() * friends.length)]; // draw 2: animal (from unlocked pool)
     const choices = buildChoices(n, choiceCount, max, rng); // draws 3+: distractors, then shuffle
     return { kind: 'count', count: n, animal, choices };
   },

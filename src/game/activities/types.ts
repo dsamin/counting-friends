@@ -124,8 +124,14 @@ export type Round =
 
 export interface ActivityModule<R extends Round = Round> {
   id: ActivityId;
-  /** Pure round generator — deterministic given rng. */
-  generate(level: Level, rng: Rng): R;
+  /**
+   * Pure round generator — deterministic given rng. `pool` restricts the
+   * countable characters to those currently unlocked (so locked collectibles
+   * never appear before they're earned, and earned ones join the rotation —
+   * §7.7); generators that don't use characters ignore it, and it defaults to
+   * the full roster when omitted.
+   */
+  generate(level: Level, rng: Rng, pool?: Character[]): R;
   /**
    * Pure evaluation of one answer payload. Replaces the v1 single-boolean
    * `isCorrect`. Single-tap activities return `roundComplete === correct`.

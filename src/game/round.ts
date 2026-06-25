@@ -1,16 +1,11 @@
-import type { Character, Rng, Round, Tier } from './types';
-import { CHARACTERS } from './characters';
+import type { Character } from './types';
 import { CONFETTI, WORDS } from './constants';
 
-/** Highest count for a tier: easy 5, medium 10, hard 20. */
-export function tierMax(t: Tier): number {
-  return t === 'easy' ? 5 : t === 'medium' ? 10 : 20;
-}
-
-/** Number of answer buttons for a tier: easy 3, otherwise 4. */
-export function tierChoices(t: Tier): number {
-  return t === 'easy' ? 3 : 4;
-}
+/**
+ * Round-adjacent pure helpers shared across the app. Round *generation* now lives
+ * in the Activity framework (`src/game/activities/*`); what remains here are the
+ * presentation helpers still used by the play UI and the audio engine.
+ */
 
 /** Clamp `val` into the inclusive range [min, max]. */
 function clamp(min: number, val: number, max: number): number {
@@ -28,8 +23,7 @@ export function animalSize(count: number): number {
 /**
  * How many confetti particles a celebration fires. Reduce-motion always
  * collapses to a handful of soft sparkles; otherwise the `confettiDensity`
- * prop picks the calm (34) or full (74) burst. Ported from the prototype's
- * `rm ? sparkles : (density === 'calm' ? 34 : 74)` branch.
+ * prop picks the calm (34) or full (74) burst.
  */
 export function confettiCount(
   reduceMotion: boolean,
@@ -39,34 +33,15 @@ export function confettiCount(
   return density === 'calm' ? CONFETTI.calm : CONFETTI.full;
 }
 
-/**
- * Build one round: a target count, a friend, and a sorted set of unique
- * answer choices that always contains the correct count.
- */
-export function generateRound(tier: Tier, rng: Rng = Math.random): Round {
-  const max = tierMax(tier);
-  const count = 1 + Math.floor(rng() * max);
-  const animal = CHARACTERS[Math.floor(rng() * CHARACTERS.length)];
-
-  const set = new Set<number>([count]);
-  let guard = 0;
-  while (set.size < tierChoices(tier) && guard++ < 200) {
-    set.add(1 + Math.floor(rng() * max));
-  }
-  const choices = [...set].sort((a, b) => a - b);
-
-  return { count, animal, choices };
-}
-
 /** Capitalize the first letter of a word. */
 function cap(w: string): string {
   return w.charAt(0).toUpperCase() + w.slice(1);
 }
 
 /**
- * Spoken praise after a correct tap, matching the prototype's
- * `speakPraise` concatenation exactly (including the comma after the
- * exclamation when a child name is set): e.g. "Three! Hooray!, Jayden".
+ * Spoken praise after a correct tap, matching the prototype's `speakPraise`
+ * concatenation exactly (including the comma after the exclamation when a child
+ * name is set): e.g. "Three! Hooray!, Jayden".
  */
 export function praiseLine(
   count: number,

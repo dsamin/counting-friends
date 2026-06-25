@@ -26,14 +26,15 @@
 - [x] **Exit gate MET:** 211 tests; typecheck+lint+build+build:native+e2e(6/6) green.
 - _Deferred to 2a (not in 1b gate):_ Star Jar / Sticker Book tiles on Home Board; settings additions (level override, reset, arithmetic toggle); first-run "where is he?" seed UI (migration tier→level already covers the real upgrade). `screenshots.spec.ts` (marketing-only) needs a redesign pass.
 
-## Phase 2a — Reward spine (the headline carrot)
-- [ ] `src/game/rewards.ts` (+ tests) — frozen `REWARDS`, `streakCallout` (activity-aware, name-bearing), star/streak/milestone logic
-- [ ] `src/game/content.ts` (+ tests) — friends + 1 pack catalog + 2 unlock thresholds; §8.1 integrity invariants
-- [ ] First art wave: **3 new friends + 1 pack of 3 = 6 SVGs** (characters.ts + CharacterDefs.tsx)
-- [ ] `StarJar`, `LevelUpBanner`, `UnlockReveal` components + Sticker Book wired to real unlocks
-- [ ] Celebration arbiter (§7.6: unlock > level-up > streak, one big overlay/answer); per-animation RM fallbacks (§12.1)
-- [ ] Engine: award stars (per round), streak + name callout, level-up trigger
-- [ ] **Exit gate:** E2E — 3-in-a-row fires banner w/ configured name; star threshold writes `cf_unlocks` + UnlockReveal; no-fail guard test passes; builds green
+## Phase 2a — Reward spine (the headline carrot) ✅
+- [x] `src/game/rewards.ts` (+15 tests, subagent) — frozen `REWARDS`, `streakCallout` (name-bearing, never says "count")
+- [x] `src/game/content.ts` (+12 tests) — collectibles catalog + 1 pack + 2 unlock thresholds; §8.1 integrity
+- [x] First art wave: 3 friends (dog/owl/pig) + shapes pack (star/heart/circle) = 6 SVGs (subagent)
+- [x] `StarJar`/`LevelUpBanner`/`UnlockReveal` (+21 tests, subagent) + `StickerBook` screen wired to real unlocks
+- [x] Celebration arbiter (unlock > level-up > streak); per-animation RM fallbacks (§12.1)
+- [x] Engine: stars (monotonic), streak + name callout, level-up trigger, unlock detection; unlocked-pool rotation (§7.7 via optional `generate` pool param)
+- [x] **Exit gate MET:** e2e (8/8) — 3-in-a-row banner w/ name; threshold writes `cf_unlocks` + reveal; no-fail stars guard; 256 unit + typecheck + lint + both builds green.
+- _Deferred/simplified:_ tap-a-sticker-to-hear-sound (onTapSticker unwired); coincident overlays use priority-drop rather than queue-to-next-round; one combined StarJar entry (taps → Sticker Book) instead of separate Star Jar + Sticker tiles.
 
 ## Phase 2b — New activities (Match Up LAST)
 - [ ] `numeral.ts` + component + tests — Find the Number (plain distractors, lookAlike=false)

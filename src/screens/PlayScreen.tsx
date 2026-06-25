@@ -11,6 +11,9 @@ import ReplayPill from '../components/ReplayPill';
 import ParentalGate from '../components/ParentalGate';
 import SettingsSheet from '../components/SettingsSheet';
 import Confetti, { type ConfettiHandle } from '../components/Confetti';
+import StarJar from '../components/StarJar';
+import LevelUpBanner from '../components/LevelUpBanner';
+import UnlockReveal from '../components/UnlockReveal';
 import { celebrate, tap } from '../native/feedback';
 
 /**
@@ -182,8 +185,36 @@ export default function PlayScreen({
       <BackButton onBack={actions.back} />
       <ReplayPill speaking={state.speaking} onReplay={actions.replay} />
 
+      {/* Star count (top-right). */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'max(18px, env(safe-area-inset-top))',
+          right: 'max(18px, env(safe-area-inset-right))',
+          zIndex: 6,
+        }}
+      >
+        <StarJar stars={state.stars} />
+      </div>
+
       {/* Confetti overlay (decorative, above content, no pointer events). */}
       <Confetti ref={confettiRef} />
+
+      {/* Celebration overlay — at most one (the arbiter guarantees it, §7.6). */}
+      {state.overlay?.kind === 'celebrate' && (
+        <LevelUpBanner
+          line={state.overlay.line}
+          reduceMotion={reduceMotion}
+          onDismiss={actions.closeOverlay}
+        />
+      )}
+      {state.overlay?.kind === 'unlock' && (
+        <UnlockReveal
+          characterKey={state.overlay.characterKey}
+          reduceMotion={reduceMotion}
+          onDismiss={actions.closeOverlay}
+        />
+      )}
 
       {/* Parental gate. */}
       <ParentalGate
