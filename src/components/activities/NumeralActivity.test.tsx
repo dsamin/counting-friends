@@ -45,4 +45,28 @@ describe('NumeralActivity', () => {
     await userEvent.click(screen.getByRole('button', { name: 'number 7' }));
     expect(onAnswer).toHaveBeenCalledWith({ kind: 'tile', value: 7 });
   });
+
+  it('draws orientation anchors when the round is a look-alike (§5.2)', () => {
+    const laRound: NumeralRound = {
+      kind: 'numeral',
+      target: 6,
+      choices: [6, 9, 3, 7],
+      lookAlike: true,
+    };
+    const state = makeState({
+      activityId: 'numeral',
+      round: laRound,
+      choices: laRound.choices,
+    });
+    const { container } = render(
+      <NumeralActivity
+        state={state}
+        reduceMotion={false}
+        onAnswer={vi.fn(() => true)}
+        registerButton={() => {}}
+      />,
+    );
+    // One ground-line anchor per numeral tile.
+    expect(container.querySelectorAll('[data-anchor]').length).toBe(4);
+  });
 });

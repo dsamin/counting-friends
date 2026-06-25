@@ -19,6 +19,7 @@ function baseState(over: Partial<GameState> = {}): GameState {
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',
+    countAlong: false,
     count: 3,
     choices: [2, 3, 4],
     animal: CHARACTERS[0],

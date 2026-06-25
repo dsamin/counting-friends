@@ -17,6 +17,7 @@ export function makeState(over: Partial<GameState> = {}): GameState {
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',
+    countAlong: false,
     count: 0,
     choices: [],
     animal: CHARACTERS[0],

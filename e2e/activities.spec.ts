@@ -32,6 +32,34 @@ test('Find the Number: tapping the spoken numeral is correct', async ({
   await expect(btn).toHaveClass(/cf-number--correct/);
 });
 
+test('Count-Along: a wrong count answer lets the child count along, then answer (§5.1)', async ({
+  page,
+}) => {
+  await enter(page, /counting game/i);
+  await expect(page.locator('.cf-number').first()).toBeVisible();
+
+  const k = await page.locator('.cf-animal').count();
+  const labels = await page.locator('.cf-number').allInnerTexts();
+  const choices = labels
+    .map((t) => Number(t.trim()))
+    .filter((n) => !Number.isNaN(n));
+  const wrong = choices.find((n) => n !== k)!;
+
+  // A wrong tap surfaces Count-Along (no-fail): friends become tappable, tiles hide.
+  await page.getByRole('button', { name: `number ${wrong}`, exact: true }).click();
+  await expect(page.locator('[data-count-friend]').first()).toBeVisible();
+
+  // Count each friend; once all are counted the tiles return.
+  const friends = page.locator('[data-count-friend]');
+  const n = await friends.count();
+  for (let i = 0; i < n; i += 1) await friends.nth(i).click();
+
+  const correct = page.getByRole('button', { name: `number ${k}`, exact: true });
+  await expect(correct).toBeVisible();
+  await correct.click();
+  await expect(correct).toHaveClass(/cf-number--correct/);
+});
+
 test('Quick Look: answering the revealed count is correct', async ({ page }) => {
   await enter(page, /quick look game/i);
 

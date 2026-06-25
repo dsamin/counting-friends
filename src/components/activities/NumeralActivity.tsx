@@ -25,6 +25,7 @@ export default function NumeralActivity({
   const round = state.round?.kind === 'numeral' ? state.round : null;
   const choices = round ? round.choices : state.choices;
   const isEasy = choices.length <= 3;
+  const anchored = round?.lookAlike ?? false;
   const aria = round ? `Find the ${WORDS[round.target] ?? round.target}!` : '';
 
   return (
@@ -83,6 +84,7 @@ export default function NumeralActivity({
             isEasy={isEasy}
             reduceMotion={reduceMotion}
             innerRef={(el) => registerButton(value, el)}
+            anchored={anchored}
           />
         ))}
       </div>

@@ -21,6 +21,7 @@ function baseState(over: Partial<GameState> = {}): GameState {
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',
+    countAlong: false,
     count: 3,
     choices: [2, 3, 4],
     animal: CHARACTERS[0], // duck
@@ -49,6 +50,7 @@ function spyActions(): GameActions {
     back: vi.fn(),
     openStickers: vi.fn(),
     closeOverlay: vi.fn(),
+    countSpeak: vi.fn(),
     gateDown: vi.fn(),
     gateUp: vi.fn(),
     closeSettings: vi.fn(),

@@ -4,7 +4,7 @@ import type { ActivityId, AnswerPayload } from './activities/types';
 import { getActivity, ACTIVITIES } from './activities';
 import { praiseLine } from './round';
 import { getCharacter } from './characters';
-import { PRAISE, TIMING } from './constants';
+import { PRAISE, TIMING, WORDS } from './constants';
 import {
   saveName,
   saveReduceMotion,
@@ -55,6 +55,8 @@ export interface GameActions {
   back(): void; // → home
   openStickers(): void;
   closeOverlay(): void;
+  /** Count-Along: speak the running tally as the child taps the nth friend (§5.1). */
+  countSpeak(n: number): void;
   gateDown(): void;
   gateUp(): void;
   closeSettings(): void;
@@ -428,11 +430,23 @@ export function useGame(options: UseGameOptions = {}): {
           revertRef.current = null;
           dispatch({ type: 'CLEAR_ANIM' });
         }, TIMING.wrongRevert);
-        clearReask();
-        reaskRef.current = setTimeout(() => {
-          reaskRef.current = null;
-          if (stateRef.current.status === 'asking') speakPrompt();
-        }, TIMING.reask);
+        // Count It remediation (§5.1): the first wrong count answer offers
+        // "count along" — tap each friend, count together — instead of a bare
+        // re-ask. Off by default; only ever surfaced here, never forced.
+        if (s.activityId === 'count' && !s.countAlong) {
+          dispatch({ type: 'SET_COUNT_ALONG', on: true });
+          clearReask();
+          reaskRef.current = setTimeout(() => {
+            reaskRef.current = null;
+            audioRef.current.speak("Let's count them together!");
+          }, TIMING.reask);
+        } else {
+          clearReask();
+          reaskRef.current = setTimeout(() => {
+            reaskRef.current = null;
+            if (stateRef.current.status === 'asking') speakPrompt();
+          }, TIMING.reask);
+        }
         // Note: do NOT re-arm idle on a wrong answer (matches v1).
       }
       return correct;
@@ -472,6 +486,12 @@ export function useGame(options: UseGameOptions = {}): {
 
   const closeOverlay = useCallback(() => {
     dispatch({ type: 'CLOSE_OVERLAY' });
+  }, []);
+
+  const countSpeak = useCallback((n: number) => {
+    audioRef.current.ensureAudio();
+    audioRef.current.playChirp(); // soft per-friend tick
+    audioRef.current.speak(WORDS[n] ?? String(n)); // "one", "two", "three", …
   }, []);
 
   const gateDown = useCallback(() => {
@@ -554,6 +574,7 @@ export function useGame(options: UseGameOptions = {}): {
       back,
       openStickers,
       closeOverlay,
+      countSpeak,
       gateDown,
       gateUp,
       closeSettings,
@@ -571,6 +592,7 @@ export function useGame(options: UseGameOptions = {}): {
       back,
       openStickers,
       closeOverlay,
+      countSpeak,
       gateDown,
       gateUp,
       closeSettings,

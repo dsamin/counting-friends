@@ -74,13 +74,14 @@ test('correct tap -> celebration -> auto-advance to a fresh round', async ({
   expect(await animalCount(page)).toBeGreaterThan(0);
 });
 
-test('wrong tap -> no-fail: does not advance and shows no error', async ({
+test('wrong tap -> no-fail: offers Count-Along, no advance, no error copy', async ({
   page,
 }) => {
   await enterCounting(page);
 
   const k = await animalCount(page);
   expect(k).toBeGreaterThan(0);
+  const before = await page.locator('[data-round]').getAttribute('data-round');
 
   const labels = await page.locator('.cf-number').allInnerTexts();
   const choices = labels
@@ -93,13 +94,14 @@ test('wrong tap -> no-fail: does not advance and shows no error', async ({
     .getByRole('button', { name: `number ${wrong}`, exact: true })
     .click();
 
+  // No-fail remediation: Count-Along appears (tappable friends), nothing advances.
+  await expect(page.locator('[data-count-friend]').first()).toBeVisible();
   await page.waitForTimeout(800);
-  expect(await animalCount(page)).toBe(k);
+  expect(await page.locator('[data-round]').getAttribute('data-round')).toBe(
+    before,
+  );
 
-  await expect(
-    page.getByRole('button', { name: `number ${k}`, exact: true }),
-  ).toBeEnabled();
-
+  // No failure messaging anywhere.
   await expect(page.locator('body')).not.toContainText(
     /game over|wrong|incorrect|try again|error/i,
   );

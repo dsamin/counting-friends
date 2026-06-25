@@ -39,6 +39,8 @@ export interface GameState {
   matchProgress: { linked: { leftId: string; rightId: string }[] } | null;
   /** Quick Look: whether the friends are currently shown or hidden. */
   revealPhase: 'revealed' | 'hidden';
+  /** Count It remediation: tap-each-friend "count along" mode (off by default, §5.1). */
+  countAlong: boolean;
 
   // Derived count-activity conveniences (set by DEAL_ROUND).
   count: number;
@@ -81,6 +83,7 @@ export function initialState(
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',
+    countAlong: false,
     count: 0,
     choices: [],
     animal: CHARACTERS[0],
@@ -106,6 +109,7 @@ export type Action =
   | { type: 'LINK_PAIR'; leftId: string; rightId: string }
   | { type: 'MATCH_COMPLETE' }
   | { type: 'SET_REVEAL_PHASE'; phase: 'revealed' | 'hidden' }
+  | { type: 'SET_COUNT_ALONG'; on: boolean }
   | { type: 'SET_STREAK'; streak: number }
   | { type: 'SET_MASTERY'; activityId: ActivityId; level: number; window: boolean[] }
   | { type: 'AWARD_STARS'; stars: number }
@@ -164,6 +168,7 @@ export function reducer(state: GameState, action: Action): GameState {
         overlay: null, // a fresh round clears any celebratory overlay
         matchProgress: r.kind === 'match' ? { linked: [] } : null,
         revealPhase: 'revealed',
+        countAlong: false, // a fresh round always starts in normal mode
         roundId: state.roundId + 1,
       };
     }
@@ -190,6 +195,9 @@ export function reducer(state: GameState, action: Action): GameState {
 
     case 'SET_REVEAL_PHASE':
       return { ...state, revealPhase: action.phase };
+
+    case 'SET_COUNT_ALONG':
+      return { ...state, countAlong: action.on };
 
     case 'CHOOSE': {
       // Rapid-tap guard: only an asking round accepts a choice.

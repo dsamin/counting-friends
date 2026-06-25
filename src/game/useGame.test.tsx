@@ -173,6 +173,16 @@ describe('rewards', () => {
     expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
   });
 
+  it('a wrong Count It answer offers Count-Along remediation, off by default (§5.1)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    expect(view.result.current.state.countAlong).toBe(false);
+    const count = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== count)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.countAlong).toBe(true);
+  });
+
   it('a wrong Match Up connect is SILENT and does not reset the streak (§14.4 no-fail guard)', () => {
     const { audio, view } = setup();
     // Build a non-zero streak with a clean count answer.
@@ -277,17 +287,13 @@ describe('choose correct', () => {
 });
 
 describe('choose wrong', () => {
-  it('plays whoops, keeps asking, reverts at 640ms, re-asks at 760ms, no advance', () => {
+  it('plays whoops, keeps asking, reverts at 640ms, offers Count-Along at 760ms, no advance', () => {
     const { audio, view } = setup();
     act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
     // pick a wrong value guaranteed different from count
     const wrong = view.result.current.state.choices.find((c) => c !== count)!;
-
-    const promptsBefore = audio.calls.speak.filter((t) =>
-      t.startsWith('How many'),
-    ).length;
 
     act(() => view.result.current.actions.choose(wrong));
     expect(audio.calls.whoops).toBe(1);
@@ -298,12 +304,13 @@ describe('choose wrong', () => {
     act(() => vi.advanceTimersByTime(TIMING.wrongRevert));
     expect(view.result.current.state.animatingValue).toBeNull();
 
-    // re-ask spoken at 760ms
+    // For Count It, the wrong answer offers Count-Along (§5.1): the invitation
+    // is spoken at 760ms and count-along mode is active (no bare prompt re-ask).
     act(() => vi.advanceTimersByTime(TIMING.reask - TIMING.wrongRevert));
-    const promptsAfter = audio.calls.speak.filter((t) =>
-      t.startsWith('How many'),
-    ).length;
-    expect(promptsAfter).toBe(promptsBefore + 1);
+    expect(view.result.current.state.countAlong).toBe(true);
+    expect(audio.calls.speak.some((t) => /count them together/i.test(t))).toBe(
+      true,
+    );
 
     // no auto-advance for a wrong answer
     act(() => vi.advanceTimersByTime(TIMING.advance));

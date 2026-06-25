@@ -49,6 +49,7 @@ describe('initialState', () => {
       overlay: null,
       matchProgress: null,
       revealPhase: 'revealed',
+      countAlong: false,
       count: 0,
       choices: [],
       animal: CHARACTERS[0],
@@ -183,6 +184,13 @@ describe('reward actions', () => {
     expect(reducer(freshState(), { type: 'SET_SETTINGS', settings }).settings).toEqual(
       settings,
     );
+  });
+
+  it('SET_COUNT_ALONG toggles count-along, and a fresh round clears it', () => {
+    const on = reducer(freshState(), { type: 'SET_COUNT_ALONG', on: true });
+    expect(on.countAlong).toBe(true);
+    const dealt = reducer(on, { type: 'DEAL_ROUND', round: ROUND, activityId: 'count' });
+    expect(dealt.countAlong).toBe(false);
   });
 
   it('SHOW_OVERLAY / CLOSE_OVERLAY set and clear the active overlay', () => {

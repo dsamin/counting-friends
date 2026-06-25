@@ -58,7 +58,14 @@ All headline parent asks delivered: more challenges (4 activities), more images 
 - [x] Settings: "Adding & taking away" toggle; `settings` in state + persistence; `SET_SETTINGS`/`toggleArithmetic`
 
 ## Phase 3/4 — Exit gate MET ✅
-375 unit + 17 e2e (compare/order/onemore/add smokes + Match Up portrait+landscape) green; typecheck + lint + web/native builds green. Generators adversarially verified. _Deferred (documented):_ Count-Along remediation + 6/9 look-alikes (spec §5.1/§5.2 — lowest-value, frustration-risk; left for after watching the real child).
+375 unit + 17 e2e (compare/order/onemore/add smokes + Match Up portrait+landscape) green; typecheck + lint + web/native builds green. Generators adversarially verified.
+
+## Adversarial integration review + previously-deferred items — NOW DONE ✅
+- [x] 5-lens adversarial review run; 3 confirmed findings fixed (§14.4 no-fail guard test, reduce-motion `cf-bob` CSS, Compare overflow); 2 engine concerns verified as false positives.
+- [x] **6/9 look-alike distractors (§5.2)** — `numeral` gates `lookAlike` at L3+ (`CONFUSABLE_PAIRS=[[6,9]]`, partner forced into choices); `NumberButton` draws a ground-line `anchored` so 6/9 never show without an orientation anchor.
+- [x] **Count-Along remediation (§5.1)** — off by default; a wrong Count It answer activates `countAlong`; `CountAlongField` lets the child tap each friend (counts aloud) then reveals the tiles. No-fail; never forced.
+
+**ENTIRE FINALIZED SPEC NOW IMPLEMENTED.** 383 unit + 18 e2e green; typecheck/lint/web+native builds green. Playwright `retries:2` for timing-sensitive no-fail flows.
 
 ---
 

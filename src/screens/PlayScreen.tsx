@@ -21,6 +21,7 @@ import CompareActivity from '../components/activities/CompareActivity';
 import OrderActivity from '../components/activities/OrderActivity';
 import OneMoreActivity from '../components/activities/OneMoreActivity';
 import AddActivity from '../components/activities/AddActivity';
+import CountAlongField from '../components/activities/CountAlongField';
 import { celebrate, tap } from '../native/feedback';
 
 /**
@@ -178,7 +179,14 @@ export default function PlayScreen({
         flexDirection: 'column',
       }}
     >
-      {isCount ? (
+      {isCount && state.countAlong ? (
+        <CountAlongField
+          state={state}
+          reduceMotion={reduceMotion}
+          actions={actions}
+          registerButton={registerButton}
+        />
+      ) : isCount ? (
         <>
           {/* Live region: announces the current question as text to assistive
               tech (VoiceOver) and deaf/HoH users, without adding visible
