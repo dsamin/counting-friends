@@ -33,6 +33,10 @@ export interface GameState {
   unlocks: UnlocksState;
   /** The single active celebratory overlay, if any (§7.6). */
   overlay: Overlay | null;
+  /** Match Up: the pairs linked so far this round (null outside a match round). */
+  matchProgress: { linked: { leftId: string; rightId: string }[] } | null;
+  /** Quick Look: whether the friends are currently shown or hidden. */
+  revealPhase: 'revealed' | 'hidden';
 
   // Derived count-activity conveniences (set by DEAL_ROUND).
   count: number;
@@ -71,6 +75,8 @@ export function initialState(
     stars: init.stars ?? 0,
     unlocks: init.unlocks ?? defaultUnlocks(),
     overlay: null,
+    matchProgress: null,
+    revealPhase: 'revealed',
     count: 0,
     choices: [],
     animal: CHARACTERS[0],
@@ -93,6 +99,9 @@ export type Action =
   | { type: 'GO_HOME' }
   | { type: 'DEAL_ROUND'; round: Round; activityId: ActivityId }
   | { type: 'CHOOSE'; value: number; correct: boolean }
+  | { type: 'LINK_PAIR'; leftId: string; rightId: string }
+  | { type: 'MATCH_COMPLETE' }
+  | { type: 'SET_REVEAL_PHASE'; phase: 'revealed' | 'hidden' }
   | { type: 'SET_STREAK'; streak: number }
   | { type: 'SET_MASTERY'; activityId: ActivityId; level: number; window: boolean[] }
   | { type: 'AWARD_STARS'; stars: number }
@@ -148,9 +157,34 @@ export function reducer(state: GameState, action: Action): GameState {
         animatingValue: null,
         animType: null,
         overlay: null, // a fresh round clears any celebratory overlay
+        matchProgress: r.kind === 'match' ? { linked: [] } : null,
+        revealPhase: 'revealed',
         roundId: state.roundId + 1,
       };
     }
+
+    case 'LINK_PAIR':
+      return {
+        ...state,
+        matchProgress: {
+          linked: [
+            ...(state.matchProgress?.linked ?? []),
+            { leftId: action.leftId, rightId: action.rightId },
+          ],
+        },
+      };
+
+    case 'MATCH_COMPLETE':
+      return {
+        ...state,
+        status: 'correct',
+        animKey: state.animKey + 1,
+        animatingValue: null,
+        animType: 'correct',
+      };
+
+    case 'SET_REVEAL_PHASE':
+      return { ...state, revealPhase: action.phase };
 
     case 'CHOOSE': {
       // Rapid-tap guard: only an asking round accepts a choice.

@@ -17,6 +17,8 @@ function baseState(over: Partial<GameState> = {}): GameState {
     stars: 0,
     unlocks: defaultUnlocks(),
     overlay: null,
+    matchProgress: null,
+    revealPhase: 'revealed',
     count: 2,
     choices: [1, 2, 3],
     animal: CHARACTERS[0],
@@ -38,6 +40,7 @@ function baseState(over: Partial<GameState> = {}): GameState {
 function spyActions(): GameActions {
   return {
     enterActivity: vi.fn(),
+    answer: vi.fn(),
     choose: vi.fn(),
     tapAnimal: vi.fn(),
     replay: vi.fn(),

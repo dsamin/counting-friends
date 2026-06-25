@@ -17,6 +17,8 @@ function baseState(over: Partial<GameState> = {}): GameState {
     stars: 0,
     unlocks: defaultUnlocks(),
     overlay: null,
+    matchProgress: null,
+    revealPhase: 'revealed',
     count: 0,
     choices: [],
     animal: CHARACTERS[0],
@@ -38,6 +40,7 @@ function baseState(over: Partial<GameState> = {}): GameState {
 function spyActions(): GameActions {
   return {
     enterActivity: vi.fn(),
+    answer: vi.fn(),
     choose: vi.fn(),
     tapAnimal: vi.fn(),
     replay: vi.fn(),
@@ -64,14 +67,13 @@ describe('HomeBoard', () => {
 
   it('renders a tile for each available (registered) activity', () => {
     render(<HomeBoard state={baseState()} actions={spyActions()} />);
-    // count is the only registered activity in this build.
+    // All four release activities are registered → a tile each.
+    expect(screen.getByRole('button', { name: /counting game/i })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /counting game/i }),
+      screen.getByRole('button', { name: /find the number game/i }),
     ).toBeInTheDocument();
-    // Activities not yet registered must not appear.
-    expect(
-      screen.queryByRole('button', { name: /matching game/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /quick look game/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /matching game/i })).toBeInTheDocument();
   });
 
   it('enters the activity when its tile is tapped', async () => {

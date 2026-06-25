@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { Rng, Tier } from './types';
-import type { ActivityId } from './activities/types';
+import type { ActivityId, AnswerPayload } from './activities/types';
 import { getActivity, ACTIVITIES } from './activities';
 import { praiseLine } from './round';
 import { getCharacter } from './characters';
@@ -46,6 +46,8 @@ export interface UseGameOptions {
 
 export interface GameActions {
   enterActivity(activityId: ActivityId): void;
+  /** Submit an answer for any activity; returns whether it was correct. */
+  answer(payload: AnswerPayload): boolean;
   choose(value: number): void;
   tapAnimal(): void;
   replay(): void;
@@ -63,7 +65,11 @@ export interface GameActions {
 function makeV2Defaults(startLevel: number): V2Defaults {
   const unlocks = defaultUnlocks();
   const mastery: Record<string, MasteryRecord> = {};
-  for (const id of unlocks.activities) mastery[id] = { level: startLevel, window: [] };
+  // Count inherits the migrated starting level; the new skills start fresh at 1
+  // (the adaptive engine moves them up quickly if he's ready).
+  for (const id of unlocks.activities) {
+    mastery[id] = { level: id === 'count' ? startLevel : 1, window: [] };
+  }
   return { stars: 0, streakBest: 0, mastery, unlocks, settings: {} };
 }
 
@@ -122,6 +128,7 @@ export function useGame(options: UseGameOptions = {}): {
   const advanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reaskRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gateRafRef = useRef<number | null>(null);
   /** True until the current round's first-attempt outcome has been recorded. */
   const firstAttemptRef = useRef(true);
@@ -157,6 +164,12 @@ export function useGame(options: UseGameOptions = {}): {
       reaskRef.current = null;
     }
   }, []);
+  const clearReveal = useCallback(() => {
+    if (revealRef.current !== null) {
+      clearTimeout(revealRef.current);
+      revealRef.current = null;
+    }
+  }, []);
   const cancelGate = useCallback(() => {
     if (gateRafRef.current !== null) {
       cancelAnimationFrame(gateRafRef.current);
@@ -168,7 +181,8 @@ export function useGame(options: UseGameOptions = {}): {
     clearAdvance();
     clearRevert();
     clearReask();
-  }, [clearIdle, clearAdvance, clearRevert, clearReask]);
+    clearReveal();
+  }, [clearIdle, clearAdvance, clearRevert, clearReask, clearReveal]);
 
   /** Speak the active round's prompt (any activity). */
   const speakPrompt = useCallback(() => {
@@ -209,9 +223,18 @@ export function useGame(options: UseGameOptions = {}): {
       audioRef.current.speak(
         activity.prompt(round, stateRef.current.childName || undefined).speech,
       );
+      // Quick Look: reveal the friends, then hide after revealMs (engine timer
+      // so it is fake-timer-able in tests, §5.4).
+      clearReveal();
+      if (round.kind === 'quicklook') {
+        revealRef.current = setTimeout(() => {
+          revealRef.current = null;
+          dispatch({ type: 'SET_REVEAL_PHASE', phase: 'hidden' });
+        }, round.revealMs);
+      }
       startIdle();
     },
-    [levelFor, startIdle],
+    [levelFor, startIdle, clearReveal],
   );
 
   const enterActivity = useCallback(
@@ -305,21 +328,65 @@ export function useGame(options: UseGameOptions = {}): {
     [],
   );
 
-  const choose = useCallback(
-    (value: number) => {
+  /** Celebrate a completed round and arm the auto-advance. */
+  const completeRound = useCallback(
+    (wasFirst: boolean, streak: number, leveledUp: boolean) => {
       const s = stateRef.current;
-      if (s.status !== 'asking' || !s.round) return; // rapid-tap guard
-      audioRef.current.ensureAudio();
-      clearIdle();
+      audioRef.current.playPop();
+      handleReward(s.activityId, wasFirst ? streak : s.streak, wasFirst && leveledUp);
+      const delay = s.reduceMotion ? TIMING.advanceReduceMotion : TIMING.advance;
+      clearAdvance();
+      advanceRef.current = setTimeout(() => {
+        advanceRef.current = null;
+        dealRound(stateRef.current.activityId);
+      }, delay);
+    },
+    [clearAdvance, dealRound, handleReward],
+  );
 
+  /**
+   * Submit an answer for ANY activity. Single-tap activities follow the v1
+   * no-fail loop; Match Up is multi-step (links accumulate) and its wrong
+   * connects are a SILENT non-event (§5.3). Returns whether the payload was
+   * correct (Match Up's component uses this to wobble locally on a miss).
+   */
+  const answer = useCallback(
+    (payload: AnswerPayload): boolean => {
+      const s = stateRef.current;
+      if (s.status !== 'asking' || !s.round) return false; // rapid-tap guard
+      audioRef.current.ensureAudio();
       const activity = getActivity(s.activityId);
-      const { correct, roundComplete } = activity.evaluate(s.round, {
-        kind: 'tile',
-        value,
-      });
+      const { correct, roundComplete } = activity.evaluate(s.round, payload);
+
+      // ---- Match Up: multi-step, no-fail-silent wrong connects ----
+      if (s.round.kind === 'match') {
+        if (correct && payload.kind === 'pair') {
+          clearIdle();
+          audioRef.current.playChirp(); // soft link-chime
+          const total = Object.keys(s.round.solution).length;
+          const linkedCount = (s.matchProgress?.linked.length ?? 0) + 1;
+          dispatch({ type: 'LINK_PAIR', leftId: payload.leftId, rightId: payload.rightId });
+          if (linkedCount >= total) {
+            const wasFirst = firstAttemptRef.current;
+            let streak = s.streak;
+            let leveledUp = false;
+            if (wasFirst) {
+              firstAttemptRef.current = false;
+              ({ newStreak: streak, leveledUp } = recordOutcome(s.activityId, true));
+            }
+            dispatch({ type: 'MATCH_COMPLETE' });
+            completeRound(wasFirst, streak, leveledUp);
+          }
+        }
+        // A wrong connect: no audio, no streak reset — the component wobbles.
+        return correct;
+      }
+
+      // ---- Single-tap activities (count, numeral, quicklook, …) ----
+      clearIdle();
+      const value = payload.kind === 'tile' ? payload.value : 0;
       dispatch({ type: 'CHOOSE', value, correct });
 
-      // One adaptive outcome per round — the first attempt only.
       const wasFirst = firstAttemptRef.current;
       let streak = s.streak;
       let leveledUp = false;
@@ -329,17 +396,7 @@ export function useGame(options: UseGameOptions = {}): {
       }
 
       if (correct && roundComplete) {
-        audioRef.current.playPop();
-        // Stars/streak/level-up/unlock celebration (one overlay max).
-        handleReward(s.activityId, wasFirst ? streak : s.streak, wasFirst && leveledUp);
-        const delay = s.reduceMotion
-          ? TIMING.advanceReduceMotion
-          : TIMING.advance;
-        clearAdvance();
-        advanceRef.current = setTimeout(() => {
-          advanceRef.current = null;
-          dealRound(stateRef.current.activityId);
-        }, delay);
+        completeRound(wasFirst, streak, leveledUp);
       } else if (!correct) {
         audioRef.current.playWhoops();
         clearRevert();
@@ -354,17 +411,16 @@ export function useGame(options: UseGameOptions = {}): {
         }, TIMING.reask);
         // Note: do NOT re-arm idle on a wrong answer (matches v1).
       }
+      return correct;
     },
-    [
-      clearIdle,
-      clearAdvance,
-      clearRevert,
-      clearReask,
-      dealRound,
-      recordOutcome,
-      handleReward,
-      speakPrompt,
-    ],
+    [clearIdle, clearRevert, clearReask, recordOutcome, completeRound, speakPrompt],
+  );
+
+  const choose = useCallback(
+    (value: number) => {
+      answer({ kind: 'tile', value });
+    },
+    [answer],
   );
 
   const tapAnimal = useCallback(() => {
@@ -461,6 +517,7 @@ export function useGame(options: UseGameOptions = {}): {
   const actions = useMemo<GameActions>(
     () => ({
       enterActivity,
+      answer,
       choose,
       tapAnimal,
       replay,
@@ -476,6 +533,7 @@ export function useGame(options: UseGameOptions = {}): {
     }),
     [
       enterActivity,
+      answer,
       choose,
       tapAnimal,
       replay,

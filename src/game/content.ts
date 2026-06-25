@@ -12,7 +12,12 @@ import { CHARACTERS } from './characters';
 export const BASE_FRIEND_KEYS = ['duck', 'cat', 'frog', 'bunny'] as const;
 
 /** Activities renderable in this build (the registry is the source of truth). */
-export const RELEASE_ACTIVITIES: ActivityId[] = ['count']; // grows as activities ship
+export const RELEASE_ACTIVITIES: ActivityId[] = [
+  'count',
+  'numeral',
+  'quicklook',
+  'match',
+];
 
 export interface Pack {
   id: string;

@@ -36,11 +36,16 @@
 - [x] **Exit gate MET:** e2e (8/8) — 3-in-a-row banner w/ name; threshold writes `cf_unlocks` + reveal; no-fail stars guard; 256 unit + typecheck + lint + both builds green.
 - _Deferred/simplified:_ tap-a-sticker-to-hear-sound (onTapSticker unwired); coincident overlays use priority-drop rather than queue-to-next-round; one combined StarJar entry (taps → Sticker Book) instead of separate Star Jar + Sticker tiles.
 
-## Phase 2b — New activities (Match Up LAST)
-- [ ] `numeral.ts` + component + tests — Find the Number (plain distractors, lookAlike=false)
-- [ ] `quicklook.ts` + component + tests — Quick Look (reveal via engine TIMING timer; `revealMs>0`, `<1000⇒count≤5`)
-- [ ] **Match Up** — dedicated E2E **written first**; `match.ts` + `MatchActivity` + `RibbonLink`; tap-then-tap; wrong connect = silent non-event; round-complete celebration; portrait pairCount≤3
-- [ ] **Exit gate:** per-activity E2E to a correct answer; Match Up E2E links all pairs portrait+landscape; no red tests
+## Phase 2b — New activities (Match Up LAST) ✅
+- [x] `numeral.ts` (+11 tests, subagent) + `NumeralActivity` (+3 tests) — Find the Number (plain distractors)
+- [x] `quicklook.ts` (+12 tests, subagent) + `QuickLookActivity` (+2 tests) — Quick Look (reveal via engine TIMING timer; `data-count`/`data-phase` seams)
+- [x] **Match Up** — `match.ts` (+12 tests, subagent) + `MatchActivity` + `RibbonLink` (+4 tests); tap-then-tap; wrong connect = silent non-event; round-complete celebration; portrait pairCount≤3
+- [x] Engine generalized: `answer(payload)` seam (single-tap + multi-step match); `LINK_PAIR`/`MATCH_COMPLETE`/reveal timer; PlayScreen host refactor (count inline, others delegated); all 4 registered + on Home Board
+- [x] **Exit gate MET:** e2e (13/13) — each new activity played to a correct answer; **Match Up links all pairs at portrait AND landscape**; 300 unit + typecheck + lint + both builds green.
+
+---
+## RELEASE CUT-LINE COMPLETE ✅ (1a + 1b + 2a + Find-the-Number + Quick-Look + Match-Up)
+All headline parent asks delivered: more challenges (4 activities), more images (collectibles), streak callouts that say his name + adaptive level progression, left↔right Match Up, more engaging/age-appropriate math (subitizing, numeral recognition, quantity↔symbol mapping). 300 unit + 13 e2e green; web + native builds green; iPad-ready.
 
 ## Phase 3 (fast-follow) — Compare & Order (+ Count-Along remediation, 6/9 look-alike)
 ## Phase 4 (fast-follow, gated) — One More/One Less, Add & Take Away + mastery rung gate

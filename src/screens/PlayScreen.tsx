@@ -14,6 +14,9 @@ import Confetti, { type ConfettiHandle } from '../components/Confetti';
 import StarJar from '../components/StarJar';
 import LevelUpBanner from '../components/LevelUpBanner';
 import UnlockReveal from '../components/UnlockReveal';
+import NumeralActivity from '../components/activities/NumeralActivity';
+import QuickLookActivity from '../components/activities/QuickLookActivity';
+import MatchActivity from '../components/activities/MatchActivity';
 import { celebrate, tap } from '../native/feedback';
 
 /**
@@ -52,6 +55,46 @@ export default function PlayScreen({
   // button squash/wobble all stay consistent with the CSS media-query safety
   // net (which also fires on the OS preference alone).
   const reduceMotion = state.reduceMotion || prefersReducedMotion();
+  const isCount = state.activityId === 'count';
+
+  // Register a choice button so the confetti can burst from its center.
+  const registerButton = (value: number, el: HTMLButtonElement | null) => {
+    if (el) buttonRefs.current.set(value, el);
+    else buttonRefs.current.delete(value);
+  };
+
+  const renderActivity = () => {
+    switch (state.activityId) {
+      case 'numeral':
+        return (
+          <NumeralActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+            registerButton={registerButton}
+          />
+        );
+      case 'quicklook':
+        return (
+          <QuickLookActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+            registerButton={registerButton}
+          />
+        );
+      case 'match':
+        return (
+          <MatchActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   // Fire confetti when a correct answer flips the round to 'correct'.
   useEffect(() => {
@@ -95,91 +138,94 @@ export default function PlayScreen({
         flexDirection: 'column',
       }}
     >
-      {/* Live region: announces the current question as text to assistive tech
-          (VoiceOver) and deaf/HoH users, without adding visible child-facing
-          copy. Keyed on roundId so it remounts each round and re-announces even
-          when consecutive rounds use the same animal (screen readers otherwise
-          dedupe identical consecutive text). */}
-      <div
-        key={state.roundId}
-        className="sr-only"
-        role="status"
-        aria-live="polite"
-      >
-        {state.count > 0 ? promptLine(state.animal) : ''}
-      </div>
+      {isCount ? (
+        <>
+          {/* Live region: announces the current question as text to assistive
+              tech (VoiceOver) and deaf/HoH users, without adding visible
+              child-facing copy. Keyed on roundId so it remounts each round and
+              re-announces even when consecutive rounds use the same animal
+              (screen readers otherwise dedupe identical consecutive text). */}
+          <div
+            key={state.roundId}
+            className="sr-only"
+            role="status"
+            aria-live="polite"
+          >
+            {state.count > 0 ? promptLine(state.animal) : ''}
+          </div>
 
-      {/* Reserve the top chrome band. */}
-      <div style={{ height: 96, flex: 'none' }} />
+          {/* Reserve the top chrome band. */}
+          <div style={{ height: 96, flex: 'none' }} />
 
-      {/* Animal field. */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignContent: 'center',
-          justifyContent: 'center',
-          gap: '8px 18px',
-          padding: '0 60px',
-        }}
-      >
-        {Array.from({ length: state.count }).map((_, i) => {
-          const delay = i * TIMING.popStagger;
-          const animation = reduceMotion
-            ? 'none'
-            : `cf-popIn ${TIMING.popInDuration}ms cubic-bezier(.34,1.56,.64,1) ${delay}ms both, ` +
-              `cf-bob ${2400 + (i % 3) * 350}ms ease-in-out ${delay + TIMING.popInDuration}ms infinite`;
-          return (
-            <div
-              key={`${state.roundId}-${i}`}
-              className="cf-animal"
-              onClick={() => {
-                if (!reduceMotion) tap(); // light native tick; no-op on web
-                actions.tapAnimal();
-              }}
-              style={{
-                width: size,
-                height: size,
-                cursor: 'pointer',
-                animation,
-                willChange: 'transform',
-              }}
-            >
-              <CharacterSprite href={state.animal.href} size={size} />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Number choices. */}
-      <div
-        style={{
-          flex: 'none',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-end',
-          gap: 28,
-          padding: '0 40px 34px',
-          minHeight: 188,
-        }}
-      >
-        {state.choices.map((value) => (
-          <NumberButton
-            // Remount on each tap so the CSS animation replays.
-            key={`${value}-${state.animKey}`}
-            value={value}
-            state={state}
-            onChoose={actions.choose}
-            isEasy={isEasy}
-            reduceMotion={reduceMotion}
-            innerRef={(el) => {
-              if (el) buttonRefs.current.set(value, el);
-              else buttonRefs.current.delete(value);
+          {/* Animal field. */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignContent: 'center',
+              justifyContent: 'center',
+              gap: '8px 18px',
+              padding: '0 60px',
             }}
-          />
-        ))}
-      </div>
+          >
+            {Array.from({ length: state.count }).map((_, i) => {
+              const delay = i * TIMING.popStagger;
+              const animation = reduceMotion
+                ? 'none'
+                : `cf-popIn ${TIMING.popInDuration}ms cubic-bezier(.34,1.56,.64,1) ${delay}ms both, ` +
+                  `cf-bob ${2400 + (i % 3) * 350}ms ease-in-out ${delay + TIMING.popInDuration}ms infinite`;
+              return (
+                <div
+                  key={`${state.roundId}-${i}`}
+                  className="cf-animal"
+                  onClick={() => {
+                    if (!reduceMotion) tap(); // light native tick; no-op on web
+                    actions.tapAnimal();
+                  }}
+                  style={{
+                    width: size,
+                    height: size,
+                    cursor: 'pointer',
+                    animation,
+                    willChange: 'transform',
+                  }}
+                >
+                  <CharacterSprite href={state.animal.href} size={size} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Number choices. */}
+          <div
+            style={{
+              flex: 'none',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              gap: 28,
+              padding: '0 40px 34px',
+              minHeight: 188,
+            }}
+          >
+            {state.choices.map((value) => (
+              <NumberButton
+                // Remount on each tap so the CSS animation replays.
+                key={`${value}-${state.animKey}`}
+                value={value}
+                state={state}
+                onChoose={actions.choose}
+                isEasy={isEasy}
+                reduceMotion={reduceMotion}
+                innerRef={(el) => registerButton(value, el)}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        renderActivity()
+      )}
 
       {/* Top chrome. */}
       <BackButton onBack={actions.back} />

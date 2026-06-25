@@ -46,6 +46,8 @@ describe('initialState', () => {
       stars: 0,
       unlocks: defaultUnlocks(),
       overlay: null,
+      matchProgress: null,
+      revealPhase: 'revealed',
       count: 0,
       choices: [],
       animal: CHARACTERS[0],
