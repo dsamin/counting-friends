@@ -47,8 +47,18 @@
 ## RELEASE CUT-LINE COMPLETE ✅ (1a + 1b + 2a + Find-the-Number + Quick-Look + Match-Up)
 All headline parent asks delivered: more challenges (4 activities), more images (collectibles), streak callouts that say his name + adaptive level progression, left↔right Match Up, more engaging/age-appropriate math (subitizing, numeral recognition, quantity↔symbol mapping). 300 unit + 13 e2e green; web + native builds green; iPad-ready.
 
-## Phase 3 (fast-follow) — Compare & Order (+ Count-Along remediation, 6/9 look-alike)
-## Phase 4 (fast-follow, gated) — One More/One Less, Add & Take Away + mastery rung gate
+## Phase 3 — Compare & Order ✅
+- [x] `compare.ts` + `CompareActivity` (+ tests) — More or Fewer (tap the bigger/smaller group; static targets)
+- [x] `order.ts` + `OrderActivity` (+ tests) — Put It in Order: `next` (single-tap) + `build` (multi-step `sequence` payload)
+- [x] Engine `answer()` extended with a `sequence` branch (multi-step, no-fail); generators built + adversarially verified (workflow, all pass)
+
+## Phase 4 — Arithmetic (gated) ✅
+- [x] `onemore.ts` + `OneMoreActivity`, `add.ts` + `AddActivity` (+ tests) — One More/One Less, Add & Take Away
+- [x] `gating.ts` (+ tests) — arithmetic hidden until the settings toggle OR a mastery bar (count L4 + numeral L3 + match L2 → One More; One More L2 → Add); Home Board driven by `availableActivities`
+- [x] Settings: "Adding & taking away" toggle; `settings` in state + persistence; `SET_SETTINGS`/`toggleArithmetic`
+
+## Phase 3/4 — Exit gate MET ✅
+375 unit + 17 e2e (compare/order/onemore/add smokes + Match Up portrait+landscape) green; typecheck + lint + web/native builds green. Generators adversarially verified. _Deferred (documented):_ Count-Along remediation + 6/9 look-alikes (spec §5.1/§5.2 — lowest-value, frustration-risk; left for after watching the real child).
 
 ---
 

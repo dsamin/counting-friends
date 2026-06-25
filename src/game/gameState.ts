@@ -1,6 +1,6 @@
 import type { Character, Status } from './types';
 import type { ActivityId, Round } from './activities/types';
-import type { MasteryRecord, Prefs } from './persistence';
+import type { CfSettings, MasteryRecord, Prefs } from './persistence';
 import type { UnlocksState } from './content';
 import { defaultUnlocks } from './content';
 import { CHARACTERS } from './characters';
@@ -31,6 +31,8 @@ export interface GameState {
   stars: number;
   /** Unlocked friends / packs / activities (§7.7). */
   unlocks: UnlocksState;
+  /** Grown-up settings (arithmetic toggle, level override, …). */
+  settings: CfSettings;
   /** The single active celebratory overlay, if any (§7.6). */
   overlay: Overlay | null;
   /** Match Up: the pairs linked so far this round (null outside a match round). */
@@ -63,6 +65,7 @@ export function initialState(
     mastery: Record<string, MasteryRecord>;
     stars?: number;
     unlocks?: UnlocksState;
+    settings?: CfSettings;
     activityId?: ActivityId;
   },
 ): GameState {
@@ -74,6 +77,7 @@ export function initialState(
     streak: 0,
     stars: init.stars ?? 0,
     unlocks: init.unlocks ?? defaultUnlocks(),
+    settings: init.settings ?? {},
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',
@@ -106,6 +110,7 @@ export type Action =
   | { type: 'SET_MASTERY'; activityId: ActivityId; level: number; window: boolean[] }
   | { type: 'AWARD_STARS'; stars: number }
   | { type: 'SET_UNLOCKS'; unlocks: UnlocksState }
+  | { type: 'SET_SETTINGS'; settings: CfSettings }
   | { type: 'SHOW_OVERLAY'; overlay: Overlay }
   | { type: 'CLOSE_OVERLAY' }
   | { type: 'OPEN_STICKERS' }
@@ -216,6 +221,9 @@ export function reducer(state: GameState, action: Action): GameState {
 
     case 'SET_UNLOCKS':
       return { ...state, unlocks: action.unlocks };
+
+    case 'SET_SETTINGS':
+      return { ...state, settings: action.settings };
 
     case 'SHOW_OVERLAY':
       return { ...state, overlay: action.overlay };

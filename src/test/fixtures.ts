@@ -13,6 +13,7 @@ export function makeState(over: Partial<GameState> = {}): GameState {
     streak: 0,
     stars: 0,
     unlocks: defaultUnlocks(),
+    settings: {},
     overlay: null,
     matchProgress: null,
     revealPhase: 'revealed',

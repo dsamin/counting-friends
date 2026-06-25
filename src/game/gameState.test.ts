@@ -45,6 +45,7 @@ describe('initialState', () => {
       streak: 0,
       stars: 0,
       unlocks: defaultUnlocks(),
+      settings: {},
       overlay: null,
       matchProgress: null,
       revealPhase: 'revealed',
@@ -174,6 +175,13 @@ describe('reward actions', () => {
     const unlocks = { friends: ['duck', 'dog'], packs: ['shapes'], activities: ['count'] };
     expect(reducer(freshState(), { type: 'SET_UNLOCKS', unlocks }).unlocks).toEqual(
       unlocks,
+    );
+  });
+
+  it('SET_SETTINGS replaces the settings', () => {
+    const settings = { arithmetic: true };
+    expect(reducer(freshState(), { type: 'SET_SETTINGS', settings }).settings).toEqual(
+      settings,
     );
   });
 

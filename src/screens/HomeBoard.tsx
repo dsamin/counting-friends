@@ -1,7 +1,7 @@
 import type { ActivityId } from '../game/activities/types';
-import { ACTIVITIES } from '../game/activities';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
+import { availableActivities } from '../game/gating';
 import CharacterSprite from '../components/CharacterSprite';
 import StarJar from '../components/StarJar';
 
@@ -32,12 +32,11 @@ const TILE_META: Partial<Record<ActivityId, ActivityTileMeta>> = {
   numeral: { aria: 'Find the number game', friendHref: '#cat', size: 132 },
   quicklook: { aria: 'Quick look game', friendHref: '#frog', size: 132 },
   match: { aria: 'Matching game', friendHref: '#bunny', size: 132 },
+  compare: { aria: 'More or fewer game', friendHref: '#cat', size: 132 },
+  order: { aria: 'Put in order game', friendHref: '#frog', size: 132 },
+  onemore: { aria: 'One more game', friendHref: '#bunny', size: 132 },
+  add: { aria: 'Add and take away game', friendHref: '#duck', size: 132 },
 };
-
-/** Available = registered (renderable) AND has tile presentation. */
-function availableActivities(): ActivityId[] {
-  return (Object.keys(ACTIVITIES) as ActivityId[]).filter((id) => TILE_META[id]);
-}
 
 function ActivityTile({
   id,
@@ -72,7 +71,11 @@ function ActivityTile({
 }
 
 export default function HomeBoard({ state, actions }: HomeBoardProps) {
-  const activities = availableActivities();
+  const activities = availableActivities(
+    state.unlocks,
+    state.mastery,
+    state.settings,
+  ).filter((id) => TILE_META[id]);
   return (
     <div
       style={{

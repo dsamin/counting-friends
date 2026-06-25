@@ -3,6 +3,10 @@ import { count } from './count';
 import { numeral } from './numeral';
 import { quicklook } from './quicklook';
 import { match } from './match';
+import { compare } from './compare';
+import { order } from './order';
+import { onemore } from './onemore';
+import { add } from './add';
 
 /**
  * Activity registry. The engine only ever holds `ActivityModule<Round>`; each
@@ -18,6 +22,10 @@ export const ACTIVITIES: Partial<Record<ActivityId, ActivityModule<Round>>> = {
   numeral,
   quicklook,
   match,
+  compare,
+  order,
+  onemore,
+  add,
 };
 
 export function getActivity(id: ActivityId): ActivityModule<Round> {

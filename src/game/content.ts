@@ -11,12 +11,18 @@ import { CHARACTERS } from './characters';
 
 export const BASE_FRIEND_KEYS = ['duck', 'cat', 'frog', 'bunny'] as const;
 
-/** Activities renderable in this build (the registry is the source of truth). */
+/**
+ * Number-sense activities available from the start (the registry decides what's
+ * actually renderable). Arithmetic (`onemore`/`add`) is NOT here — it is gated
+ * by `gating.ts` behind a settings toggle / mastery bar (§6.6).
+ */
 export const RELEASE_ACTIVITIES: ActivityId[] = [
   'count',
   'numeral',
   'quicklook',
   'match',
+  'compare',
+  'order',
 ];
 
 export interface Pack {

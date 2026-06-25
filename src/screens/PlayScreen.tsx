@@ -17,6 +17,10 @@ import UnlockReveal from '../components/UnlockReveal';
 import NumeralActivity from '../components/activities/NumeralActivity';
 import QuickLookActivity from '../components/activities/QuickLookActivity';
 import MatchActivity from '../components/activities/MatchActivity';
+import CompareActivity from '../components/activities/CompareActivity';
+import OrderActivity from '../components/activities/OrderActivity';
+import OneMoreActivity from '../components/activities/OneMoreActivity';
+import AddActivity from '../components/activities/AddActivity';
 import { celebrate, tap } from '../native/feedback';
 
 /**
@@ -91,6 +95,40 @@ export default function PlayScreen({
             onAnswer={actions.answer}
           />
         );
+      case 'compare':
+        return (
+          <CompareActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+          />
+        );
+      case 'order':
+        return (
+          <OrderActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+          />
+        );
+      case 'onemore':
+        return (
+          <OneMoreActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+            registerButton={registerButton}
+          />
+        );
+      case 'add':
+        return (
+          <AddActivity
+            state={state}
+            reduceMotion={reduceMotion}
+            onAnswer={actions.answer}
+            registerButton={registerButton}
+          />
+        );
       default:
         return null;
     }
@@ -130,6 +168,8 @@ export default function PlayScreen({
   return (
     <div
       ref={fieldRef}
+      data-round={state.roundId}
+      data-activity={state.activityId}
       style={{
         position: 'absolute',
         inset: 0,

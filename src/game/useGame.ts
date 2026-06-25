@@ -16,6 +16,7 @@ import {
   saveStars,
   saveStreakBest,
   saveUnlocks,
+  saveSettings,
   type MasteryRecord,
   type V2Defaults,
 } from './persistence';
@@ -60,6 +61,7 @@ export interface GameActions {
   setName(name: string): void;
   toggleReduceMotion(): void;
   toggleVoice(): void;
+  toggleArithmetic(): void;
 }
 
 function makeV2Defaults(startLevel: number): V2Defaults {
@@ -117,6 +119,7 @@ export function useGame(options: UseGameOptions = {}): {
       mastery: v2.mastery,
       stars: v2.stars,
       unlocks: v2.unlocks,
+      settings: v2.settings,
       activityId: 'count',
     });
   });
@@ -382,6 +385,27 @@ export function useGame(options: UseGameOptions = {}): {
         return correct;
       }
 
+      // ---- Sequence (Order "build" mode): multi-step, no-fail ----
+      if (payload.kind === 'sequence') {
+        if (correct && roundComplete) {
+          clearIdle();
+          const wasFirst = firstAttemptRef.current;
+          let streak = s.streak;
+          let leveledUp = false;
+          if (wasFirst) {
+            firstAttemptRef.current = false;
+            ({ newStreak: streak, leveledUp } = recordOutcome(s.activityId, true));
+          }
+          dispatch({ type: 'MATCH_COMPLETE' }); // sets status correct for the celebration
+          completeRound(wasFirst, streak, leveledUp);
+        } else if (correct) {
+          audioRef.current.playChirp(); // soft tick on a valid partial sequence
+        } else {
+          audioRef.current.playWhoops(); // gentle; no advance, no streak reset
+        }
+        return correct;
+      }
+
       // ---- Single-tap activities (count, numeral, quicklook, …) ----
       clearIdle();
       const value = payload.kind === 'tile' ? payload.value : 0;
@@ -498,6 +522,12 @@ export function useGame(options: UseGameOptions = {}): {
     }
   }, []);
 
+  const toggleArithmetic = useCallback(() => {
+    const next = { ...stateRef.current.settings, arithmetic: !stateRef.current.settings.arithmetic };
+    dispatch({ type: 'SET_SETTINGS', settings: next });
+    saveSettings(next);
+  }, []);
+
   useEffect(() => {
     audio.onSpeakingChange = (b: boolean) =>
       dispatch({ type: 'SET_SPEAKING', speaking: b });
@@ -530,6 +560,7 @@ export function useGame(options: UseGameOptions = {}): {
       setName,
       toggleReduceMotion,
       toggleVoice,
+      toggleArithmetic,
     }),
     [
       enterActivity,
@@ -546,6 +577,7 @@ export function useGame(options: UseGameOptions = {}): {
       setName,
       toggleReduceMotion,
       toggleVoice,
+      toggleArithmetic,
     ],
   );
 
