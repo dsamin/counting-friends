@@ -173,6 +173,44 @@ describe('rewards', () => {
     expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
   });
 
+  it('a wrong Match Up connect is SILENT and does not reset the streak (§14.4 no-fail guard)', () => {
+    const { audio, view } = setup();
+    // Build a non-zero streak with a clean count answer.
+    act(() => view.result.current.actions.enterActivity('count'));
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+    // Enter Match Up — the streak carries over.
+    act(() => view.result.current.actions.enterActivity('match'));
+    const round = view.result.current.state.round;
+    expect(round?.kind).toBe('match');
+    if (round?.kind !== 'match') throw new Error('expected a match round');
+
+    const streakBefore = view.result.current.state.streak;
+    expect(streakBefore).toBeGreaterThan(0);
+    const whoopsBefore = audio.calls.whoops;
+    const chirpBefore = audio.calls.chirp;
+
+    // Craft a deliberately WRONG pair (a right id that is not the left's solution).
+    const left = round.left[0];
+    const wrongRight = round.right.find((r) => round.solution[left.id] !== r.id)!;
+    let returned: boolean | undefined;
+    act(() => {
+      returned = view.result.current.actions.answer({
+        kind: 'pair',
+        leftId: left.id,
+        rightId: wrongRight.id,
+      });
+    });
+
+    expect(returned).toBe(false);
+    // No punishing sound, no link recorded, streak untouched.
+    expect(audio.calls.whoops).toBe(whoopsBefore);
+    expect(audio.calls.chirp).toBe(chirpBefore);
+    expect(view.result.current.state.matchProgress?.linked ?? []).toHaveLength(0);
+    expect(view.result.current.state.streak).toBe(streakBefore);
+  });
+
   it('crossing a star threshold records the unlock and shows the unlock reveal', () => {
     const { view } = setup();
     act(() => view.result.current.actions.enterActivity('count'));

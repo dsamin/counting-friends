@@ -15,6 +15,13 @@ interface CompareActivityProps {
   onAnswer: (payload: AnswerPayload) => boolean;
 }
 
+/** Sprite size that keeps even a 20-friend group inside the bounded card. */
+function spriteSize(value: number): number {
+  if (value <= 5) return Math.min(animalSize(value), 64);
+  if (value <= 10) return 44;
+  return 30; // up to 20 friends still fit in ~5 rows inside the card
+}
+
 function Group({
   value,
   friend,
@@ -24,7 +31,7 @@ function Group({
   friend: string;
   onTap: () => void;
 }) {
-  const size = Math.min(animalSize(value), 72);
+  const size = spriteSize(value);
   return (
     <button
       type="button"
@@ -34,9 +41,11 @@ function Group({
       onClick={onTap}
       style={{
         // Intentionally static — a tappable target must not move under little fingers.
-        minWidth: 200,
+        width: 'min(40vw, 360px)',
+        minWidth: 180,
         minHeight: 220,
-        padding: 20,
+        maxHeight: 440,
+        padding: 18,
         background: 'var(--cf-cream-raised)',
         border: '4px solid var(--cf-ink)',
         borderRadius: 'var(--cf-r-card)',
@@ -47,6 +56,7 @@ function Group({
         gap: 6,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
       {Array.from({ length: value }).map((_, i) => (
