@@ -5,7 +5,7 @@ import { createWebAudioEngine } from './audio/webAudioEngine';
 import { createNativeAudioEngine } from './native/capacitorTtsEngine';
 import CharacterDefs from './components/CharacterDefs';
 import Scene from './components/Scene';
-import StartScreen from './screens/StartScreen';
+import HomeBoard from './screens/HomeBoard';
 import PlayScreen from './screens/PlayScreen';
 
 /**
@@ -38,14 +38,14 @@ export default function App() {
     <div className="cf-app">
       <CharacterDefs />
       <Scene />
-      {state.screen === 'start' ? (
-        <StartScreen state={state} actions={actions} />
-      ) : (
+      {state.screen === 'play' ? (
         <PlayScreen
           state={state}
           actions={actions}
           confettiDensity={CONFETTI_DENSITY}
         />
+      ) : (
+        <HomeBoard state={state} actions={actions} />
       )}
     </div>
   );

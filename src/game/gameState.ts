@@ -1,20 +1,31 @@
-import type { Character, Round, Status, Tier } from './types';
+import type { Character, Status } from './types';
+import type { ActivityId, Round } from './activities/types';
+import type { MasteryRecord, Prefs } from './persistence';
 import { CHARACTERS } from './characters';
 import { TIMING } from './constants';
-import type { Prefs } from './persistence';
 
 /**
- * The full game state. Two top-level screens; while playing, a single round
- * is in flight. Animation fields drive CSS retriggers; `gateProgress` powers
- * the long-press settings gate. Everything is serializable and the reducer
- * never mutates it — see `reducer`.
+ * The full v2 game state. Three top-level screens (`home` | `play` | `stickers`).
+ * Difficulty is per-activity and adaptive (`mastery`), so v1's `tier` is gone.
+ * `round` holds the active activity's round; `count`/`choices`/`animal` are
+ * **derived conveniences** kept in sync by `DEAL_ROUND` for the count activity's
+ * UI (the per-activity host split lands in a later phase). Animation fields drive
+ * CSS retriggers; everything is serializable and the reducer never mutates.
  */
 export interface GameState {
-  screen: 'start' | 'play';
-  tier: Tier;
+  screen: 'home' | 'play' | 'stickers';
+  activityId: ActivityId;
+  round: Round | null;
+  /** Per-activity adaptive mastery (level + rolling outcome window). */
+  mastery: Record<string, MasteryRecord>;
+  /** Consecutive correct round-completes (feeds adaptive + reward callouts). */
+  streak: number;
+
+  // Derived count-activity conveniences (set by DEAL_ROUND).
   count: number;
   choices: number[];
   animal: Character;
+
   status: Status; // 'asking' | 'correct'
   animatingValue: number | null;
   animType: 'correct' | 'wrong' | null;
@@ -28,14 +39,17 @@ export interface GameState {
   speaking: boolean;
 }
 
-/** Build the initial state from loaded prefs plus app defaults. */
+/** Build the initial state from loaded prefs plus the loaded mastery map. */
 export function initialState(
   prefs: Prefs,
-  _defaults: { defaultTier: Tier; voiceEnabled: boolean },
+  init: { mastery: Record<string, MasteryRecord>; activityId?: ActivityId },
 ): GameState {
   return {
-    screen: 'start',
-    tier: prefs.tier,
+    screen: 'home',
+    activityId: init.activityId ?? 'count',
+    round: null,
+    mastery: init.mastery,
+    streak: 0,
     count: 0,
     choices: [],
     animal: CHARACTERS[0],
@@ -54,11 +68,14 @@ export function initialState(
 }
 
 export type Action =
-  | { type: 'PICK_TIER'; tier: Tier }
-  | { type: 'DEAL_ROUND'; round: Round }
+  | { type: 'ENTER_ACTIVITY'; activityId: ActivityId }
+  | { type: 'GO_HOME' }
+  | { type: 'DEAL_ROUND'; round: Round; activityId: ActivityId }
   | { type: 'CHOOSE'; value: number; correct: boolean }
+  | { type: 'SET_STREAK'; streak: number }
+  | { type: 'SET_MASTERY'; activityId: ActivityId; level: number; window: boolean[] }
+  | { type: 'OPEN_STICKERS' }
   | { type: 'CLEAR_ANIM' }
-  | { type: 'BACK' }
   | { type: 'GATE_PROGRESS'; p: number }
   | { type: 'GATE_OPEN' }
   | { type: 'GATE_RESET' }
@@ -71,20 +88,42 @@ export type Action =
 /** Pure reducer. Returns the same reference when nothing changes. */
 export function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case 'PICK_TIER':
-      return { ...state, screen: 'play', tier: action.tier };
+    case 'ENTER_ACTIVITY':
+      return { ...state, screen: 'play', activityId: action.activityId };
 
-    case 'DEAL_ROUND':
+    case 'GO_HOME':
       return {
         ...state,
-        count: action.round.count,
-        animal: action.round.animal,
-        choices: action.round.choices,
+        screen: 'home',
+        settingsOpen: false,
+        status: 'asking',
+        animatingValue: null,
+        animType: null,
+        gateProgress: 0,
+        speaking: false,
+      };
+
+    case 'OPEN_STICKERS':
+      return { ...state, screen: 'stickers', settingsOpen: false };
+
+    case 'DEAL_ROUND': {
+      const r = action.round;
+      // Keep the count UI's flat fields in sync for the count activity.
+      const flat =
+        r.kind === 'count'
+          ? { count: r.count, animal: r.animal, choices: r.choices }
+          : { count: 0, choices: [] as number[], animal: state.animal };
+      return {
+        ...state,
+        round: r,
+        activityId: action.activityId,
+        ...flat,
         status: 'asking',
         animatingValue: null,
         animType: null,
         roundId: state.roundId + 1,
       };
+    }
 
     case 'CHOOSE': {
       // Rapid-tap guard: only an asking round accepts a choice.
@@ -98,19 +137,20 @@ export function reducer(state: GameState, action: Action): GameState {
       };
     }
 
-    case 'CLEAR_ANIM':
-      return { ...state, animatingValue: null, animType: null };
+    case 'SET_STREAK':
+      return { ...state, streak: action.streak };
 
-    case 'BACK':
+    case 'SET_MASTERY':
       return {
         ...state,
-        screen: 'start',
-        settingsOpen: false,
-        status: 'asking',
-        animatingValue: null,
-        gateProgress: 0,
-        speaking: false,
+        mastery: {
+          ...state.mastery,
+          [action.activityId]: { level: action.level, window: action.window },
+        },
       };
+
+    case 'CLEAR_ANIM':
+      return { ...state, animatingValue: null, animType: null };
 
     case 'GATE_PROGRESS':
       return { ...state, gateProgress: action.p };

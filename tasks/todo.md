@@ -8,21 +8,23 @@
 > Release cut-line (§15): 1a + 1b + 2a + (Find the Number, Quick Look, Match Up). Hard floor: 1 + 2a + Match Up.
 > Hard gate every phase: `typecheck && test && build && build:native` green; no merged code with red tests.
 
-## Phase 1a — Activity framework behind the existing Tier engine (zero behavior change)
-- [ ] `src/game/activities/types.ts` — ActivityId, Level, AnswerPayload, SpeechAndCue, EvalResult, Round union, ActivityModule (per §4.1)
-- [ ] `src/game/activities/count.ts` + tests — count module; **knobs from Tier, choices kept SORTED (1a parity)**; `evaluate()` returns `{correct, roundComplete}`
-- [ ] `src/game/activities/index.ts` — registry `Record<ActivityId, ActivityModule<Round>>`
-- [ ] Route reducer/useGame/PlayScreen through `activity.evaluate()` (correctness leaves useGame); add `round`/`activityId` to state alongside flat count/choices/animal
-- [ ] **Exit gate:** v1 test files unchanged + passing (155); typecheck+test+build+build:native green; Playwright smoke plays one count round
+## Phase 1a — Activity framework behind the existing Tier engine (zero behavior change) ✅
+- [x] `src/game/activities/types.ts` — pinned v2 contract (§4.1)
+- [x] `src/game/activities/choices.ts` + tests — shared buildChoices (shuffled)
+- [x] `src/game/activities/count.ts` + tests — count module + countParams level table
+- [x] `src/game/activities/index.ts` + tests — registry (method-bivariant, no casts) + getActivity
+- [x] Route useGame deal-prompt + correctness through count.prompt/count.evaluate (generateRound retained for parity)
+- [x] **Exit gate MET:** 171 tests (155 v1 unchanged + 16 new); typecheck+test+build+build:native+e2e all green. Commit 99e8e35.
 
-## Phase 1b — Tier→Level + Home Board
-- [ ] `src/game/progression.ts` (+ tests) — frozen `PROGRESSION`, `applyAttempt`, `nextLevel` (5/6 OR clean-streak-4, ease-back, cooldown, fast-first-climb)
-- [ ] Tier→Level swap (§4.4 field-fate): remove `tier`, count reads from `round`; introduce shuffle (§5.9)
-- [ ] `src/screens/HomeBoard.tsx` — wordless recommended tiles (3–4) + audio-on-tap preview + Star Jar/Sticker Book tiles; fold in v1 mascot/lockup warmth
-- [ ] `GO_HOME` replaces hardcoded BACK→start; `screen: 'home'|'play'|'stickers'`
-- [ ] persistence v2 + migration + `loadV2State()` (per-key try/catch) + malformed-JSON guard; first-run starting-level seed (§6.5)
-- [ ] **Replace** StartScreen/tier/PICK_TIER unit + E2E tests against Home Board (rewrite, don't delete)
-- [ ] **Exit gate:** all tests green; smoke renders Home Board + enters count; migration + malformed-JSON tests pass
+## Phase 1b — Tier→Level + Home Board ✅
+- [x] `src/game/progression.ts` (+16 tests) — frozen `PROGRESSION`, `applyAttempt`, `nextLevel` (subagent, verified)
+- [x] Tier→Level swap (§4.4): removed `tier`; `round`/`activityId`/`mastery`/`streak` on state; count.generate(level) live; shuffle live
+- [x] `src/screens/HomeBoard.tsx` (+tests) — wordless registry-driven activity tiles; v1 mascot/lockup warmth preserved
+- [x] `GO_HOME` replaces BACK→start; `screen: 'home'|'play'|'stickers'`; adaptive level + streak wired in useGame
+- [x] persistence v2 + migration + `loadV2State()` + malformed-JSON guard (subagent, +19 tests)
+- [x] **Replaced** StartScreen→HomeBoard tests; updated gameState/useGame/PlayScreen/NumberButton/SettingsSheet/App + e2e flows
+- [x] **Exit gate MET:** 211 tests; typecheck+lint+build+build:native+e2e(6/6) green.
+- _Deferred to 2a (not in 1b gate):_ Star Jar / Sticker Book tiles on Home Board; settings additions (level override, reset, arithmetic toggle); first-run "where is he?" seed UI (migration tier→level already covers the real upgrade). `screenshots.spec.ts` (marketing-only) needs a redesign pass.
 
 ## Phase 2a — Reward spine (the headline carrot)
 - [ ] `src/game/rewards.ts` (+ tests) — frozen `REWARDS`, `streakCallout` (activity-aware, name-bearing), star/streak/milestone logic

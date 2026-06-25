@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Round } from './types';
+import type { CountRound } from './activities/types';
+import type { MasteryRecord } from './persistence';
 import { CHARACTERS } from './characters';
 import { TIMING } from './constants';
 import {
@@ -9,7 +10,10 @@ import {
   gateProgressFrom,
 } from './gameState';
 
-const DEFAULTS = { defaultTier: 'easy' as const, voiceEnabled: true };
+const MASTERY: Record<string, MasteryRecord> = {
+  count: { level: 1, window: [] },
+};
+const INIT = { mastery: MASTERY, activityId: 'count' as const };
 
 const PREFS = {
   tier: 'medium' as const,
@@ -19,21 +23,25 @@ const PREFS = {
 };
 
 function freshState(overrides: Partial<GameState> = {}): GameState {
-  return { ...initialState(PREFS, DEFAULTS), ...overrides };
+  return { ...initialState(PREFS, INIT), ...overrides };
 }
 
-const ROUND: Round = {
+const ROUND: CountRound = {
+  kind: 'count',
   count: 4,
   animal: CHARACTERS[1],
   choices: [2, 4, 6, 8],
 };
 
 describe('initialState', () => {
-  it('builds a start-screen state from prefs', () => {
-    const s = initialState(PREFS, DEFAULTS);
+  it('builds a home-screen state from prefs + mastery', () => {
+    const s = initialState(PREFS, INIT);
     expect(s).toEqual({
-      screen: 'start',
-      tier: 'medium',
+      screen: 'home',
+      activityId: 'count',
+      round: null,
+      mastery: MASTERY,
+      streak: 0,
       count: 0,
       choices: [],
       animal: CHARACTERS[0],
@@ -51,12 +59,12 @@ describe('initialState', () => {
     });
   });
 
-  it('carries reduceMotion and voiceOn from prefs', () => {
+  it('carries reduceMotion, voiceOn, and name from prefs', () => {
     const s = initialState(
       { tier: 'hard', childName: '', reduceMotion: true, voiceOn: false },
-      DEFAULTS,
+      INIT,
     );
-    expect(s.tier).toBe('hard');
+    expect(s.screen).toBe('home');
     expect(s.reduceMotion).toBe(true);
     expect(s.voiceOn).toBe(false);
     expect(s.childName).toBe('');
@@ -67,32 +75,35 @@ describe('reducer purity', () => {
   it('does not mutate the input state', () => {
     const s = freshState();
     const snapshot = JSON.parse(JSON.stringify(s));
-    reducer(s, { type: 'DEAL_ROUND', round: ROUND });
+    reducer(s, { type: 'DEAL_ROUND', round: ROUND, activityId: 'count' });
     reducer(s, { type: 'CHOOSE', value: 4, correct: true });
     reducer(s, { type: 'GATE_PROGRESS', p: 0.5 });
     reducer(s, { type: 'TOGGLE_RM' });
+    reducer(s, { type: 'SET_MASTERY', activityId: 'count', level: 2, window: [true] });
     expect(s).toEqual(snapshot);
   });
 });
 
-describe('PICK_TIER', () => {
-  it('moves to play and sets the tier', () => {
-    const s = freshState({ screen: 'start', tier: 'easy' });
-    const next = reducer(s, { type: 'PICK_TIER', tier: 'hard' });
+describe('ENTER_ACTIVITY', () => {
+  it('moves to play and sets the activity', () => {
+    const s = freshState({ screen: 'home' });
+    const next = reducer(s, { type: 'ENTER_ACTIVITY', activityId: 'count' });
     expect(next.screen).toBe('play');
-    expect(next.tier).toBe('hard');
+    expect(next.activityId).toBe('count');
   });
 });
 
 describe('DEAL_ROUND', () => {
-  it('loads round data, resets anim/status, bumps roundId', () => {
+  it('stores the round, derives flat count fields, resets anim, bumps roundId', () => {
     const s = freshState({
       roundId: 3,
       status: 'correct',
       animatingValue: 9,
       animType: 'correct',
     });
-    const next = reducer(s, { type: 'DEAL_ROUND', round: ROUND });
+    const next = reducer(s, { type: 'DEAL_ROUND', round: ROUND, activityId: 'count' });
+    expect(next.round).toBe(ROUND);
+    expect(next.activityId).toBe('count');
     expect(next.count).toBe(4);
     expect(next.animal).toBe(CHARACTERS[1]);
     expect(next.choices).toEqual([2, 4, 6, 8]);
@@ -129,6 +140,22 @@ describe('CHOOSE', () => {
   });
 });
 
+describe('streak + mastery actions', () => {
+  it('SET_STREAK sets the streak', () => {
+    expect(reducer(freshState(), { type: 'SET_STREAK', streak: 5 }).streak).toBe(5);
+  });
+
+  it('SET_MASTERY replaces the activity record', () => {
+    const next = reducer(freshState(), {
+      type: 'SET_MASTERY',
+      activityId: 'count',
+      level: 3,
+      window: [true, true, false],
+    });
+    expect(next.mastery.count).toEqual({ level: 3, window: [true, true, false] });
+  });
+});
+
 describe('CLEAR_ANIM', () => {
   it('clears animatingValue and animType', () => {
     const s = freshState({ animatingValue: 2, animType: 'wrong' });
@@ -138,8 +165,8 @@ describe('CLEAR_ANIM', () => {
   });
 });
 
-describe('BACK', () => {
-  it('returns to start and resets transient fields', () => {
+describe('GO_HOME', () => {
+  it('returns to home and resets transient fields, preserving streak + name', () => {
     const s = freshState({
       screen: 'play',
       settingsOpen: true,
@@ -147,20 +174,27 @@ describe('BACK', () => {
       animatingValue: 7,
       gateProgress: 0.6,
       speaking: true,
-      tier: 'hard',
+      streak: 3,
       childName: 'Jayden',
     });
-    const next = reducer(s, { type: 'BACK' });
-    expect(next.screen).toBe('start');
+    const next = reducer(s, { type: 'GO_HOME' });
+    expect(next.screen).toBe('home');
     expect(next.settingsOpen).toBe(false);
     expect(next.status).toBe('asking');
     expect(next.animatingValue).toBeNull();
-    // A partially-filled gate ring must not persist back on the start screen.
+    // A partially-filled gate ring must not persist back on the home screen.
     expect(next.gateProgress).toBe(0);
     expect(next.speaking).toBe(false);
-    // preserved
-    expect(next.tier).toBe('hard');
+    // preserved across navigation
+    expect(next.streak).toBe(3);
     expect(next.childName).toBe('Jayden');
+  });
+});
+
+describe('OPEN_STICKERS', () => {
+  it('opens the sticker book screen', () => {
+    const next = reducer(freshState({ screen: 'home' }), { type: 'OPEN_STICKERS' });
+    expect(next.screen).toBe('stickers');
   });
 });
 

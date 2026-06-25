@@ -9,7 +9,10 @@ import { CHARACTERS } from '../game/characters';
 function baseState(over: Partial<GameState> = {}): GameState {
   return {
     screen: 'play',
-    tier: 'easy',
+    activityId: 'count',
+    round: null,
+    mastery: { count: { level: 1, window: [] } },
+    streak: 0,
     count: 2,
     choices: [1, 2, 3],
     animal: CHARACTERS[0],
@@ -30,7 +33,7 @@ function baseState(over: Partial<GameState> = {}): GameState {
 
 function spyActions(): GameActions {
   return {
-    pick: vi.fn(),
+    enterActivity: vi.fn(),
     choose: vi.fn(),
     tapAnimal: vi.fn(),
     replay: vi.fn(),

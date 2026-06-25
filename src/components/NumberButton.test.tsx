@@ -8,7 +8,10 @@ import { CHARACTERS } from '../game/characters';
 function baseState(over: Partial<GameState> = {}): GameState {
   return {
     screen: 'play',
-    tier: 'medium',
+    activityId: 'count',
+    round: null,
+    mastery: { count: { level: 1, window: [] } },
+    streak: 0,
     count: 3,
     choices: [2, 3, 4],
     animal: CHARACTERS[0],

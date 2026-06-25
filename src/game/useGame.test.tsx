@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import type { AudioEngine } from './audio';
 import type { Rng } from './types';
 import { TIMING, PRAISE } from './constants';
+import { PROGRESSION } from './progression';
 import { useGame } from './useGame';
 
 /** A mock AudioEngine that records every call. */
@@ -88,14 +89,15 @@ function setup(rngValues = [0.2, 0.6, 0.4, 0.8, 0.1, 0.9, 0.3, 0.7]) {
   return { audio, view };
 }
 
-describe('pick → deal first round', () => {
+describe('enter activity → deal first round', () => {
   it('moves to play, deals a round in range, speaks the prompt once', () => {
     const { audio, view } = setup();
     act(() => {
-      view.result.current.actions.pick('easy');
+      view.result.current.actions.enterActivity('count');
     });
     const s = view.result.current.state;
     expect(s.screen).toBe('play');
+    expect(s.activityId).toBe('count');
     expect(s.count).toBeGreaterThanOrEqual(1);
     expect(s.count).toBeLessThanOrEqual(5);
     expect(s.choices.length).toBe(3);
@@ -104,14 +106,41 @@ describe('pick → deal first round', () => {
     expect(audio.calls.ensure).toBeGreaterThanOrEqual(1);
     // exactly one prompt spoken for the freshly dealt round
     expect(audio.calls.speak.filter((t) => t.startsWith('How many')).length).toBe(1);
-    expect(localStorage.getItem('cf_tier')).toBe('easy');
+  });
+});
+
+describe('adaptive progression', () => {
+  it('raises the activity level after a clean run (fast first climb)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    for (let i = 0; i < PROGRESSION.fastFirstClimb; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      act(() => vi.advanceTimersByTime(TIMING.advance));
+    }
+    expect(view.result.current.state.mastery.count.level).toBeGreaterThan(1);
+  });
+
+  it('increments streak on a clean answer and resets it on a wrong first attempt', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    expect(view.result.current.state.streak).toBe(1);
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+
+    const next = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== next)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.streak).toBe(0);
   });
 });
 
 describe('choose correct', () => {
   it('plays pop, speaks praise, and auto-advances at TIMING.advance', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
 
@@ -139,7 +168,7 @@ describe('choose correct', () => {
     const view = renderHook(() =>
       useGame({ audio, rng, defaultTier: 'easy', voiceEnabled: true }),
     );
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     act(() => view.result.current.actions.toggleReduceMotion());
     expect(view.result.current.state.reduceMotion).toBe(true);
 
@@ -157,7 +186,7 @@ describe('choose correct', () => {
 describe('choose wrong', () => {
   it('plays whoops, keeps asking, reverts at 640ms, re-asks at 760ms, no advance', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
     // pick a wrong value guaranteed different from count
@@ -192,7 +221,7 @@ describe('choose wrong', () => {
 describe('rapid-tap guard', () => {
   it('ignores choose() once a correct answer is locked in', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     act(() => view.result.current.actions.choose(count));
     const popAfterFirst = audio.calls.pop;
@@ -212,7 +241,7 @@ describe('rapid-tap guard', () => {
 describe('idle re-prompt', () => {
   it('re-asks after 6s of inactivity and re-arms itself', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const base = audio.calls.speak.filter((t) => t.startsWith('How many')).length;
 
     act(() => vi.advanceTimersByTime(TIMING.idle));
@@ -232,7 +261,7 @@ describe('idle re-prompt', () => {
     // opening settings; then confirm idle stays silent.
     const clock = stubClock();
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     // advance clock past gateHold and pump RAF callbacks
@@ -255,7 +284,7 @@ describe('settings gate (long-press)', () => {
   it('gateDown advances progress and opens settings when held past gateHold', () => {
     const clock = stubClock();
     const { view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     act(() => {
@@ -278,7 +307,7 @@ describe('settings gate (long-press)', () => {
   it('gateUp before completion resets progress to 0', () => {
     const clock = stubClock();
     const { view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     act(() => {
@@ -297,7 +326,7 @@ describe('settings gate (long-press)', () => {
 describe('tapAnimal / replay', () => {
   it('tapAnimal chirps and speaks the animal sound', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const sound = view.result.current.state.animal.sound;
     const chirpBefore = audio.calls.chirp;
     act(() => view.result.current.actions.tapAnimal());
@@ -307,7 +336,7 @@ describe('tapAnimal / replay', () => {
 
   it('replay speaks the current prompt', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const animal = view.result.current.state.animal;
     const before = audio.calls.speak.length;
     act(() => view.result.current.actions.replay());
@@ -318,13 +347,13 @@ describe('tapAnimal / replay', () => {
 describe('back', () => {
   it('clears timers, cancels speech, returns to start', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
     act(() => view.result.current.actions.choose(count)); // arms advance timer
 
     act(() => view.result.current.actions.back());
-    expect(view.result.current.state.screen).toBe('start');
+    expect(view.result.current.state.screen).toBe('home');
     expect(audio.calls.cancel).toBeGreaterThanOrEqual(1);
 
     // advance timer must NOT fire a new round after back()

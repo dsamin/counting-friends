@@ -1,18 +1,28 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { Rng, Tier } from './types';
-import type { CountRound } from './activities/types';
-import { count } from './activities/count';
-import { generateRound, praiseLine, promptLine } from './round';
+import type { ActivityId } from './activities/types';
+import { getActivity, ACTIVITIES } from './activities';
+import { praiseLine } from './round';
 import { PRAISE, TIMING } from './constants';
 import {
   saveName,
   saveReduceMotion,
-  saveTier,
   saveVoice,
   loadPrefs,
+  loadV2State,
+  migrateToV2,
+  saveMastery,
+  type MasteryRecord,
+  type V2Defaults,
 } from './persistence';
+import { applyAttempt, nextLevel } from './progression';
 import { type AudioEngine, silentAudio } from './audio';
-import { type GameState, gateProgressFrom, initialState, reducer } from './gameState';
+import {
+  type GameState,
+  gateProgressFrom,
+  initialState,
+  reducer,
+} from './gameState';
 import { prefersReducedMotion } from './reduceMotion';
 
 export interface UseGameOptions {
@@ -23,11 +33,11 @@ export interface UseGameOptions {
 }
 
 export interface GameActions {
-  pick(tier: Tier): void;
+  enterActivity(activityId: ActivityId): void;
   choose(value: number): void;
   tapAnimal(): void;
   replay(): void;
-  back(): void;
+  back(): void; // → home
   gateDown(): void;
   gateUp(): void;
   closeSettings(): void;
@@ -36,10 +46,28 @@ export interface GameActions {
   toggleVoice(): void;
 }
 
+/** Friends always available; release activities (grows as phases land). */
+const BASE_FRIENDS = ['duck', 'cat', 'frog', 'bunny'];
+/** Activities available in this build (the registry decides what's renderable). */
+const RELEASE_ACTIVITIES: ActivityId[] = ['count'];
+
+function makeV2Defaults(startLevel: number): V2Defaults {
+  const mastery: Record<string, MasteryRecord> = {};
+  for (const id of RELEASE_ACTIVITIES) mastery[id] = { level: startLevel, window: [] };
+  return {
+    stars: 0,
+    streakBest: 0,
+    mastery,
+    unlocks: { friends: [...BASE_FRIENDS], packs: [], activities: [...RELEASE_ACTIVITIES] },
+    settings: {},
+  };
+}
+
 /**
- * Orchestration hook: owns the reducer, all timers, the gate RAF loop, and the
- * wiring to the injected audio engine and persistence. Timers always read the
- * latest state via `stateRef`, never a stale render closure.
+ * Orchestration hook: owns the reducer, all timers, the gate RAF loop, the
+ * adaptive level/mastery bookkeeping, and the wiring to the injected audio
+ * engine and persistence. Timers always read the latest state via `stateRef`,
+ * never a stale render closure.
  */
 export function useGame(options: UseGameOptions = {}): {
   state: GameState;
@@ -59,25 +87,32 @@ export function useGame(options: UseGameOptions = {}): {
     const prefs = loadPrefs({
       tier: defaults.defaultTier,
       voiceEnabled: defaults.voiceEnabled,
-      // First-run default for the reduce-motion toggle: honor the OS
-      // `prefers-reduced-motion` preference. SSR/old-browser safe.
       reduceMotion: prefersReducedMotion(),
     });
-    return initialState(prefs, defaults);
+    // Migrate v1 → v2 (maps the last-played tier to a starting level so a child
+    // who outgrew v1 doesn't restart at level 1), then load v2 state.
+    const migration = migrateToV2(makeV2Defaults(1));
+    const v2 = loadV2State(makeV2Defaults(migration.startingLevel ?? 1));
+    if (migration.startingLevel != null && v2.mastery.count) {
+      v2.mastery.count.level = migration.startingLevel;
+      saveMastery(v2.mastery);
+    }
+    return initialState(prefs, { mastery: v2.mastery, activityId: 'count' });
   });
 
-  // Latest state for timer/RAF callbacks (avoids stale closures).
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Timer + RAF handles.
   const idleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reaskRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gateRafRef = useRef<number | null>(null);
+  /** True until the current round's first-attempt outcome has been recorded. */
+  const firstAttemptRef = useRef(true);
+  /** Rounds since the last level change, per activity (no-oscillation cooldown). */
+  const sinceChangeRef = useRef<Record<string, number>>({});
 
-  // Stable refs for injected deps so callbacks don't churn.
   const audioRef = useRef(audio);
   audioRef.current = audio;
   const rngRef = useRef(rng);
@@ -89,41 +124,46 @@ export function useGame(options: UseGameOptions = {}): {
       idleRef.current = null;
     }
   }, []);
-
   const clearAdvance = useCallback(() => {
     if (advanceRef.current !== null) {
       clearTimeout(advanceRef.current);
       advanceRef.current = null;
     }
   }, []);
-
   const clearRevert = useCallback(() => {
     if (revertRef.current !== null) {
       clearTimeout(revertRef.current);
       revertRef.current = null;
     }
   }, []);
-
   const clearReask = useCallback(() => {
     if (reaskRef.current !== null) {
       clearTimeout(reaskRef.current);
       reaskRef.current = null;
     }
   }, []);
-
   const cancelGate = useCallback(() => {
     if (gateRafRef.current !== null) {
       cancelAnimationFrame(gateRafRef.current);
       gateRafRef.current = null;
     }
   }, []);
-
   const clearAllTimers = useCallback(() => {
     clearIdle();
     clearAdvance();
     clearRevert();
     clearReask();
   }, [clearIdle, clearAdvance, clearRevert, clearReask]);
+
+  /** Speak the active round's prompt (any activity). */
+  const speakPrompt = useCallback(() => {
+    const s = stateRef.current;
+    if (!s.round) return;
+    const activity = getActivity(s.activityId);
+    audioRef.current.speak(
+      activity.prompt(s.round, s.childName || undefined).speech,
+    );
+  }, []);
 
   // Self-rearming idle re-prompt. Reads latest state via the ref.
   const startIdle = useCallback(() => {
@@ -132,54 +172,80 @@ export function useGame(options: UseGameOptions = {}): {
       idleRef.current = null;
       const s = stateRef.current;
       if (s.screen === 'play' && s.status === 'asking' && !s.settingsOpen) {
-        audioRef.current.speak(promptLine(s.animal));
+        speakPrompt();
       }
-      // Re-arm regardless so the prompt repeats while the child idles.
       startIdle();
     }, TIMING.idle);
-  }, [clearIdle]);
+  }, [clearIdle, speakPrompt]);
+
+  /** Current adaptive level for an activity (defaults to 1). */
+  const levelFor = useCallback((activityId: ActivityId): number => {
+    return stateRef.current.mastery[activityId]?.level ?? 1;
+  }, []);
 
   const dealRound = useCallback(
-    (tier: Tier) => {
-      const round = generateRound(tier, rngRef.current);
-      dispatch({ type: 'DEAL_ROUND', round });
-      // Route the spoken prompt through the count Activity module (v2 seam).
-      const cr: CountRound = { kind: 'count', ...round };
-      audioRef.current.speak(count.prompt(cr).speech);
+    (activityId: ActivityId) => {
+      const activity = getActivity(activityId);
+      const round = activity.generate(levelFor(activityId), rngRef.current);
+      dispatch({ type: 'DEAL_ROUND', round, activityId });
+      firstAttemptRef.current = true;
+      audioRef.current.speak(
+        activity.prompt(round, stateRef.current.childName || undefined).speech,
+      );
       startIdle();
     },
-    [startIdle],
+    [levelFor, startIdle],
   );
 
-  const pick = useCallback(
-    (tier: Tier) => {
-      saveTier(tier);
+  const enterActivity = useCallback(
+    (activityId: ActivityId) => {
       audioRef.current.ensureAudio();
-      dispatch({ type: 'PICK_TIER', tier });
-      dealRound(tier);
+      dispatch({ type: 'ENTER_ACTIVITY', activityId });
+      dealRound(activityId);
     },
     [dealRound],
   );
 
+  /** Record a round's first-attempt outcome: streak + adaptive mastery. */
+  const recordOutcome = useCallback((activityId: ActivityId, correct: boolean) => {
+    const s = stateRef.current;
+    const newStreak = correct ? s.streak + 1 : 0;
+    dispatch({ type: 'SET_STREAK', streak: newStreak });
+
+    const prev = s.mastery[activityId] ?? { level: 1, window: [] };
+    const window = applyAttempt(prev.window, correct);
+    const since = sinceChangeRef.current[activityId] ?? Infinity;
+    const { level, leveledUp } = nextLevel(prev.level, window, newStreak, since);
+    sinceChangeRef.current[activityId] =
+      level === prev.level ? since + 1 : 0;
+
+    dispatch({ type: 'SET_MASTERY', activityId, level, window });
+    const nextMastery = { ...s.mastery, [activityId]: { level, window } };
+    saveMastery(nextMastery);
+    return { leveledUp };
+  }, []);
+
   const choose = useCallback(
     (value: number) => {
       const s = stateRef.current;
-      if (s.status !== 'asking') return; // rapid-tap guard
+      if (s.status !== 'asking' || !s.round) return; // rapid-tap guard
       audioRef.current.ensureAudio();
       clearIdle();
 
-      // Correctness now comes from the Activity module's pure `evaluate` (v2
-      // seam), not an inline compare. For count, roundComplete === correct.
-      const cr: CountRound = {
-        kind: 'count',
-        count: s.count,
-        animal: s.animal,
-        choices: s.choices,
-      };
-      const { correct } = count.evaluate(cr, { kind: 'tile', value });
+      const activity = getActivity(s.activityId);
+      const { correct, roundComplete } = activity.evaluate(s.round, {
+        kind: 'tile',
+        value,
+      });
       dispatch({ type: 'CHOOSE', value, correct });
 
-      if (correct) {
+      // One adaptive outcome per round — the first attempt only.
+      if (firstAttemptRef.current) {
+        firstAttemptRef.current = false;
+        recordOutcome(s.activityId, correct);
+      }
+
+      if (correct && roundComplete) {
         audioRef.current.playPop();
         const praise = praiseLine(
           s.count,
@@ -193,9 +259,9 @@ export function useGame(options: UseGameOptions = {}): {
         clearAdvance();
         advanceRef.current = setTimeout(() => {
           advanceRef.current = null;
-          dealRound(stateRef.current.tier);
+          dealRound(stateRef.current.activityId);
         }, delay);
-      } else {
+      } else if (!correct) {
         audioRef.current.playWhoops();
         clearRevert();
         revertRef.current = setTimeout(() => {
@@ -205,15 +271,12 @@ export function useGame(options: UseGameOptions = {}): {
         clearReask();
         reaskRef.current = setTimeout(() => {
           reaskRef.current = null;
-          const cur = stateRef.current;
-          if (cur.status === 'asking') {
-            audioRef.current.speak(promptLine(cur.animal));
-          }
+          if (stateRef.current.status === 'asking') speakPrompt();
         }, TIMING.reask);
-        // Note: do NOT re-arm idle on a wrong answer (matches prototype).
+        // Note: do NOT re-arm idle on a wrong answer (matches v1).
       }
     },
-    [clearIdle, clearAdvance, clearRevert, clearReask, dealRound],
+    [clearIdle, clearAdvance, clearRevert, clearReask, dealRound, recordOutcome, speakPrompt],
   );
 
   const tapAnimal = useCallback(() => {
@@ -224,14 +287,14 @@ export function useGame(options: UseGameOptions = {}): {
 
   const replay = useCallback(() => {
     audioRef.current.ensureAudio();
-    audioRef.current.speak(promptLine(stateRef.current.animal));
-  }, []);
+    speakPrompt();
+  }, [speakPrompt]);
 
   const back = useCallback(() => {
     clearAllTimers();
     cancelGate();
     audioRef.current.cancelSpeech();
-    dispatch({ type: 'BACK' });
+    dispatch({ type: 'GO_HOME' });
   }, [clearAllTimers, cancelGate]);
 
   const gateDown = useCallback(() => {
@@ -282,7 +345,6 @@ export function useGame(options: UseGameOptions = {}): {
     }
   }, []);
 
-  // Wire the engine's speaking callback into state.
   useEffect(() => {
     audio.onSpeakingChange = (b: boolean) =>
       dispatch({ type: 'SET_SPEAKING', speaking: b });
@@ -291,7 +353,6 @@ export function useGame(options: UseGameOptions = {}): {
     };
   }, [audio]);
 
-  // Tear everything down on unmount.
   useEffect(() => {
     return () => {
       clearAllTimers();
@@ -302,7 +363,7 @@ export function useGame(options: UseGameOptions = {}): {
 
   const actions = useMemo<GameActions>(
     () => ({
-      pick,
+      enterActivity,
       choose,
       tapAnimal,
       replay,
@@ -315,7 +376,7 @@ export function useGame(options: UseGameOptions = {}): {
       toggleVoice,
     }),
     [
-      pick,
+      enterActivity,
       choose,
       tapAnimal,
       replay,
@@ -328,6 +389,9 @@ export function useGame(options: UseGameOptions = {}): {
       toggleVoice,
     ],
   );
+
+  // Expose the registry-backed available activities for the Home Board.
+  void ACTIVITIES;
 
   return { state, actions };
 }

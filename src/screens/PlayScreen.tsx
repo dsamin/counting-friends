@@ -41,7 +41,8 @@ export default function PlayScreen({
   const gateButtonRef = useRef<HTMLButtonElement>(null);
 
   const size = animalSize(state.count);
-  const isEasy = state.tier === 'easy';
+  // The larger "easy" button styling tracks the low-difficulty 3-choice rounds.
+  const isEasy = state.choices.length <= 3;
 
   // Effective reduce-motion: the in-app toggle OR the OS preference. Single
   // source of truth so confetti, the animal entrance/idle motion, and the
