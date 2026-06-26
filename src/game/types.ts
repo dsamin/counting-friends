@@ -1,6 +1,16 @@
 export type Tier = 'easy' | 'medium' | 'hard';
 export type Status = 'asking' | 'correct';
-export type AnimalKey = 'duck' | 'cat' | 'frog' | 'bunny';
+export type AnimalKey =
+  | 'duck'
+  | 'cat'
+  | 'frog'
+  | 'bunny'
+  | 'dog'
+  | 'owl'
+  | 'pig'
+  | 'star'
+  | 'heart'
+  | 'circle';
 
 export interface Character {
   key: AnimalKey;

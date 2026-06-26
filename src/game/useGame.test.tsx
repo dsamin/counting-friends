@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import type { AudioEngine } from './audio';
 import type { Rng } from './types';
 import { TIMING, PRAISE } from './constants';
+import { PROGRESSION } from './progression';
 import { useGame } from './useGame';
 
 /** A mock AudioEngine that records every call. */
@@ -34,10 +35,9 @@ function makeAudio(): AudioEngine & {
 }
 
 /**
- * Deterministic RNG: cycles a fixed list. generateRound consumes rng() for
- * count, then animal, then for filler choices. A constant 0 makes count=1,
- * animal=CHARACTERS[0], and fillers also map to 1 (deduped) — so choices
- * collapse and we exercise the guard; instead use a stable sequence.
+ * Deterministic RNG: cycles a fixed list. count.generate consumes rng() for
+ * the count, then the animal, then the distractor choices (then a shuffle).
+ * A stable, varied sequence keeps the dealt round well-formed.
  */
 function seqRng(values: number[]): Rng {
   let i = 0;
@@ -88,14 +88,15 @@ function setup(rngValues = [0.2, 0.6, 0.4, 0.8, 0.1, 0.9, 0.3, 0.7]) {
   return { audio, view };
 }
 
-describe('pick → deal first round', () => {
+describe('enter activity → deal first round', () => {
   it('moves to play, deals a round in range, speaks the prompt once', () => {
     const { audio, view } = setup();
     act(() => {
-      view.result.current.actions.pick('easy');
+      view.result.current.actions.enterActivity('count');
     });
     const s = view.result.current.state;
     expect(s.screen).toBe('play');
+    expect(s.activityId).toBe('count');
     expect(s.count).toBeGreaterThanOrEqual(1);
     expect(s.count).toBeLessThanOrEqual(5);
     expect(s.choices.length).toBe(3);
@@ -104,14 +105,145 @@ describe('pick → deal first round', () => {
     expect(audio.calls.ensure).toBeGreaterThanOrEqual(1);
     // exactly one prompt spoken for the freshly dealt round
     expect(audio.calls.speak.filter((t) => t.startsWith('How many')).length).toBe(1);
-    expect(localStorage.getItem('cf_tier')).toBe('easy');
+  });
+});
+
+describe('adaptive progression', () => {
+  it('raises the activity level after a clean run (fast first climb)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    for (let i = 0; i < PROGRESSION.fastFirstClimb; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      act(() => vi.advanceTimersByTime(TIMING.advance));
+    }
+    expect(view.result.current.state.mastery.count.level).toBeGreaterThan(1);
+  });
+
+  it('increments streak on a clean answer and resets it on a wrong first attempt', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    expect(view.result.current.state.streak).toBe(1);
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+
+    const next = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== next)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.streak).toBe(0);
+  });
+});
+
+describe('rewards', () => {
+  it('a 3-in-a-row streak speaks a name-bearing callout and shows a celebrate banner', () => {
+    const { audio, view } = setup();
+    act(() => view.result.current.actions.setName('Jayden'));
+    act(() => view.result.current.actions.enterActivity('count'));
+    for (let i = 0; i < 3; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      if (i < 2) act(() => vi.advanceTimersByTime(TIMING.advance));
+    }
+    const overlay = view.result.current.state.overlay;
+    expect(overlay?.kind).toBe('celebrate');
+    expect(overlay?.kind === 'celebrate' && overlay.line).toContain('Jayden');
+    expect(
+      audio.calls.speak.some((t) => t.includes('Jayden') && /in a row/i.test(t)),
+    ).toBe(true);
+  });
+
+  it('stars never decrease across a wrong-then-right sequence (no-fail guard)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    const afterFirst = view.result.current.state.stars;
+    expect(afterFirst).toBeGreaterThanOrEqual(1);
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+
+    const next = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== next)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
+    // correcting the same round still never lowers stars
+    act(() => view.result.current.actions.choose(next));
+    expect(view.result.current.state.stars).toBeGreaterThanOrEqual(afterFirst);
+  });
+
+  it('a wrong Count It answer offers Count-Along remediation, off by default (§5.1)', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    expect(view.result.current.state.countAlong).toBe(false);
+    const count = view.result.current.state.count;
+    const wrong = view.result.current.state.choices.find((c) => c !== count)!;
+    act(() => view.result.current.actions.choose(wrong));
+    expect(view.result.current.state.countAlong).toBe(true);
+  });
+
+  it('a wrong Match Up connect is SILENT and does not reset the streak (§14.4 no-fail guard)', () => {
+    const { audio, view } = setup();
+    // Build a non-zero streak with a clean count answer.
+    act(() => view.result.current.actions.enterActivity('count'));
+    const count = view.result.current.state.count;
+    act(() => view.result.current.actions.choose(count));
+    act(() => vi.advanceTimersByTime(TIMING.advance));
+    // Enter Match Up — the streak carries over.
+    act(() => view.result.current.actions.enterActivity('match'));
+    const round = view.result.current.state.round;
+    expect(round?.kind).toBe('match');
+    if (round?.kind !== 'match') throw new Error('expected a match round');
+
+    const streakBefore = view.result.current.state.streak;
+    expect(streakBefore).toBeGreaterThan(0);
+    const whoopsBefore = audio.calls.whoops;
+    const chirpBefore = audio.calls.chirp;
+
+    // Craft a deliberately WRONG pair (a right id that is not the left's solution).
+    const left = round.left[0];
+    const wrongRight = round.right.find((r) => round.solution[left.id] !== r.id)!;
+    let returned: boolean | undefined;
+    act(() => {
+      returned = view.result.current.actions.answer({
+        kind: 'pair',
+        leftId: left.id,
+        rightId: wrongRight.id,
+      });
+    });
+
+    expect(returned).toBe(false);
+    // No punishing sound, no link recorded, streak untouched.
+    expect(audio.calls.whoops).toBe(whoopsBefore);
+    expect(audio.calls.chirp).toBe(chirpBefore);
+    expect(view.result.current.state.matchProgress?.linked ?? []).toHaveLength(0);
+    expect(view.result.current.state.streak).toBe(streakBefore);
+  });
+
+  it('crossing a star threshold records the unlock and shows the unlock reveal', () => {
+    const { view } = setup();
+    act(() => view.result.current.actions.enterActivity('count'));
+    let unlocked = false;
+    for (let i = 0; i < 40 && !unlocked; i += 1) {
+      const count = view.result.current.state.count;
+      act(() => view.result.current.actions.choose(count));
+      if (view.result.current.state.overlay?.kind === 'unlock') {
+        unlocked = true;
+      } else {
+        act(() => vi.advanceTimersByTime(TIMING.advance));
+      }
+    }
+    expect(unlocked).toBe(true);
+    const stored = JSON.parse(localStorage.getItem('cf_unlocks') || '{}');
+    expect(stored.friends).toContain('dog');
   });
 });
 
 describe('choose correct', () => {
   it('plays pop, speaks praise, and auto-advances at TIMING.advance', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
 
@@ -139,7 +271,7 @@ describe('choose correct', () => {
     const view = renderHook(() =>
       useGame({ audio, rng, defaultTier: 'easy', voiceEnabled: true }),
     );
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     act(() => view.result.current.actions.toggleReduceMotion());
     expect(view.result.current.state.reduceMotion).toBe(true);
 
@@ -155,17 +287,13 @@ describe('choose correct', () => {
 });
 
 describe('choose wrong', () => {
-  it('plays whoops, keeps asking, reverts at 640ms, re-asks at 760ms, no advance', () => {
+  it('plays whoops, keeps asking, reverts at 640ms, offers Count-Along at 760ms, no advance', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
     // pick a wrong value guaranteed different from count
     const wrong = view.result.current.state.choices.find((c) => c !== count)!;
-
-    const promptsBefore = audio.calls.speak.filter((t) =>
-      t.startsWith('How many'),
-    ).length;
 
     act(() => view.result.current.actions.choose(wrong));
     expect(audio.calls.whoops).toBe(1);
@@ -176,12 +304,13 @@ describe('choose wrong', () => {
     act(() => vi.advanceTimersByTime(TIMING.wrongRevert));
     expect(view.result.current.state.animatingValue).toBeNull();
 
-    // re-ask spoken at 760ms
+    // For Count It, the wrong answer offers Count-Along (§5.1): the invitation
+    // is spoken at 760ms and count-along mode is active (no bare prompt re-ask).
     act(() => vi.advanceTimersByTime(TIMING.reask - TIMING.wrongRevert));
-    const promptsAfter = audio.calls.speak.filter((t) =>
-      t.startsWith('How many'),
-    ).length;
-    expect(promptsAfter).toBe(promptsBefore + 1);
+    expect(view.result.current.state.countAlong).toBe(true);
+    expect(audio.calls.speak.some((t) => /count them together/i.test(t))).toBe(
+      true,
+    );
 
     // no auto-advance for a wrong answer
     act(() => vi.advanceTimersByTime(TIMING.advance));
@@ -192,7 +321,7 @@ describe('choose wrong', () => {
 describe('rapid-tap guard', () => {
   it('ignores choose() once a correct answer is locked in', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     act(() => view.result.current.actions.choose(count));
     const popAfterFirst = audio.calls.pop;
@@ -212,7 +341,7 @@ describe('rapid-tap guard', () => {
 describe('idle re-prompt', () => {
   it('re-asks after 6s of inactivity and re-arms itself', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const base = audio.calls.speak.filter((t) => t.startsWith('How many')).length;
 
     act(() => vi.advanceTimersByTime(TIMING.idle));
@@ -232,7 +361,7 @@ describe('idle re-prompt', () => {
     // opening settings; then confirm idle stays silent.
     const clock = stubClock();
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     // advance clock past gateHold and pump RAF callbacks
@@ -255,7 +384,7 @@ describe('settings gate (long-press)', () => {
   it('gateDown advances progress and opens settings when held past gateHold', () => {
     const clock = stubClock();
     const { view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     act(() => {
@@ -278,7 +407,7 @@ describe('settings gate (long-press)', () => {
   it('gateUp before completion resets progress to 0', () => {
     const clock = stubClock();
     const { view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
 
     act(() => view.result.current.actions.gateDown());
     act(() => {
@@ -297,7 +426,7 @@ describe('settings gate (long-press)', () => {
 describe('tapAnimal / replay', () => {
   it('tapAnimal chirps and speaks the animal sound', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const sound = view.result.current.state.animal.sound;
     const chirpBefore = audio.calls.chirp;
     act(() => view.result.current.actions.tapAnimal());
@@ -307,7 +436,7 @@ describe('tapAnimal / replay', () => {
 
   it('replay speaks the current prompt', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const animal = view.result.current.state.animal;
     const before = audio.calls.speak.length;
     act(() => view.result.current.actions.replay());
@@ -318,13 +447,13 @@ describe('tapAnimal / replay', () => {
 describe('back', () => {
   it('clears timers, cancels speech, returns to start', () => {
     const { audio, view } = setup();
-    act(() => view.result.current.actions.pick('easy'));
+    act(() => view.result.current.actions.enterActivity('count'));
     const count = view.result.current.state.count;
     const roundId = view.result.current.state.roundId;
     act(() => view.result.current.actions.choose(count)); // arms advance timer
 
     act(() => view.result.current.actions.back());
-    expect(view.result.current.state.screen).toBe('start');
+    expect(view.result.current.state.screen).toBe('home');
     expect(audio.calls.cancel).toBeGreaterThanOrEqual(1);
 
     // advance timer must NOT fire a new round after back()

@@ -98,6 +98,29 @@
   50%      { transform: translateY(-12px) rotate(3deg); }
 }
 
+/* — Reward celebrations (§7, §12.1) ————————————————————————————————
+   Level-up / streak banner: full motion slides up into place; the
+   reduce-motion fallback fades in place with no translate. */
+@keyframes cf-banner-slide {
+  0%   { opacity: 0; transform: translateY(-18px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes cf-banner-fade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+/* Unlock reveal: full motion pops/bounces the sticker in; the reduce-motion
+   fallback cross-fades it in at full size with no pop (§12.1). */
+@keyframes cf-unlock-pop {
+  0%   { opacity: 0; transform: scale(.4); }
+  60%  { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes cf-unlock-fade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 /* Respect the OS preference as the default for the in-app "Reduce motion" toggle. */
 @media (prefers-reduced-motion: reduce) {
   :root { --cf-advance: var(--cf-advance-rm); }

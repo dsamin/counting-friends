@@ -5,8 +5,9 @@ import { createWebAudioEngine } from './audio/webAudioEngine';
 import { createNativeAudioEngine } from './native/capacitorTtsEngine';
 import CharacterDefs from './components/CharacterDefs';
 import Scene from './components/Scene';
-import StartScreen from './screens/StartScreen';
+import HomeBoard from './screens/HomeBoard';
 import PlayScreen from './screens/PlayScreen';
+import StickerBook from './screens/StickerBook';
 
 /**
  * App — the root. Creates the live audio engine exactly once, drives the game
@@ -27,7 +28,7 @@ export default function App() {
         : createWebAudioEngine(),
     [],
   );
-  const { state, actions } = useGame({ audio: engine });
+  const { state, actions, streakBest } = useGame({ audio: engine });
 
   // Keep voice-over enabled state in sync with the settings toggle.
   useEffect(() => {
@@ -38,14 +39,21 @@ export default function App() {
     <div className="cf-app">
       <CharacterDefs />
       <Scene />
-      {state.screen === 'start' ? (
-        <StartScreen state={state} actions={actions} />
-      ) : (
+      {state.screen === 'play' ? (
         <PlayScreen
           state={state}
           actions={actions}
           confettiDensity={CONFETTI_DENSITY}
         />
+      ) : state.screen === 'stickers' ? (
+        <StickerBook
+          unlocks={state.unlocks}
+          stars={state.stars}
+          streakBest={streakBest}
+          onBack={actions.back}
+        />
+      ) : (
+        <HomeBoard state={state} actions={actions} />
       )}
     </div>
   );

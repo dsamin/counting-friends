@@ -167,8 +167,10 @@
   .cf-animal--idle {
     animation: none !important;
   }
-  /* Any element driven by the looping float keyframe. */
-  [style*='cf-floaty'] {
+  /* Any element driven by a looping float/bob keyframe applied inline
+     (start screen mascot, Home Board tiles, idle bob). */
+  [style*='cf-floaty'],
+  [style*='cf-bob'] {
     animation: none !important;
   }
   /* Button squash (correct) and wobble (wrong) keyframes. The JS already drops

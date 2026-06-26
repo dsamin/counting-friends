@@ -1,3 +1,74 @@
+# Counting Friends v2 — "Counting Friends & Collections" — 2026-06-24
+
+> Goal: extend the app with more activities, a collectibles/streak reward system that says the child's
+> name and progresses levels, left↔right Match Up, adaptive difficulty — TDD, all builds green, ready
+> to test on iPad. Source of truth: `docs/superpowers/specs/2026-06-24-counting-friends-v2-FINAL.md`.
+> Branch: `feat/v2-counting-collections`. Baseline at start: 155 tests + typecheck + both builds green.
+>
+> Release cut-line (§15): 1a + 1b + 2a + (Find the Number, Quick Look, Match Up). Hard floor: 1 + 2a + Match Up.
+> Hard gate every phase: `typecheck && test && build && build:native` green; no merged code with red tests.
+
+## Phase 1a — Activity framework behind the existing Tier engine (zero behavior change) ✅
+- [x] `src/game/activities/types.ts` — pinned v2 contract (§4.1)
+- [x] `src/game/activities/choices.ts` + tests — shared buildChoices (shuffled)
+- [x] `src/game/activities/count.ts` + tests — count module + countParams level table
+- [x] `src/game/activities/index.ts` + tests — registry (method-bivariant, no casts) + getActivity
+- [x] Route useGame deal-prompt + correctness through count.prompt/count.evaluate (generateRound retained for parity)
+- [x] **Exit gate MET:** 171 tests (155 v1 unchanged + 16 new); typecheck+test+build+build:native+e2e all green. Commit 99e8e35.
+
+## Phase 1b — Tier→Level + Home Board ✅
+- [x] `src/game/progression.ts` (+16 tests) — frozen `PROGRESSION`, `applyAttempt`, `nextLevel` (subagent, verified)
+- [x] Tier→Level swap (§4.4): removed `tier`; `round`/`activityId`/`mastery`/`streak` on state; count.generate(level) live; shuffle live
+- [x] `src/screens/HomeBoard.tsx` (+tests) — wordless registry-driven activity tiles; v1 mascot/lockup warmth preserved
+- [x] `GO_HOME` replaces BACK→start; `screen: 'home'|'play'|'stickers'`; adaptive level + streak wired in useGame
+- [x] persistence v2 + migration + `loadV2State()` + malformed-JSON guard (subagent, +19 tests)
+- [x] **Replaced** StartScreen→HomeBoard tests; updated gameState/useGame/PlayScreen/NumberButton/SettingsSheet/App + e2e flows
+- [x] **Exit gate MET:** 211 tests; typecheck+lint+build+build:native+e2e(6/6) green.
+- _Deferred to 2a (not in 1b gate):_ Star Jar / Sticker Book tiles on Home Board; settings additions (level override, reset, arithmetic toggle); first-run "where is he?" seed UI (migration tier→level already covers the real upgrade). `screenshots.spec.ts` (marketing-only) needs a redesign pass.
+
+## Phase 2a — Reward spine (the headline carrot) ✅
+- [x] `src/game/rewards.ts` (+15 tests, subagent) — frozen `REWARDS`, `streakCallout` (name-bearing, never says "count")
+- [x] `src/game/content.ts` (+12 tests) — collectibles catalog + 1 pack + 2 unlock thresholds; §8.1 integrity
+- [x] First art wave: 3 friends (dog/owl/pig) + shapes pack (star/heart/circle) = 6 SVGs (subagent)
+- [x] `StarJar`/`LevelUpBanner`/`UnlockReveal` (+21 tests, subagent) + `StickerBook` screen wired to real unlocks
+- [x] Celebration arbiter (unlock > level-up > streak); per-animation RM fallbacks (§12.1)
+- [x] Engine: stars (monotonic), streak + name callout, level-up trigger, unlock detection; unlocked-pool rotation (§7.7 via optional `generate` pool param)
+- [x] **Exit gate MET:** e2e (8/8) — 3-in-a-row banner w/ name; threshold writes `cf_unlocks` + reveal; no-fail stars guard; 256 unit + typecheck + lint + both builds green.
+- _Deferred/simplified:_ tap-a-sticker-to-hear-sound (onTapSticker unwired); coincident overlays use priority-drop rather than queue-to-next-round; one combined StarJar entry (taps → Sticker Book) instead of separate Star Jar + Sticker tiles.
+
+## Phase 2b — New activities (Match Up LAST) ✅
+- [x] `numeral.ts` (+11 tests, subagent) + `NumeralActivity` (+3 tests) — Find the Number (plain distractors)
+- [x] `quicklook.ts` (+12 tests, subagent) + `QuickLookActivity` (+2 tests) — Quick Look (reveal via engine TIMING timer; `data-count`/`data-phase` seams)
+- [x] **Match Up** — `match.ts` (+12 tests, subagent) + `MatchActivity` + `RibbonLink` (+4 tests); tap-then-tap; wrong connect = silent non-event; round-complete celebration; portrait pairCount≤3
+- [x] Engine generalized: `answer(payload)` seam (single-tap + multi-step match); `LINK_PAIR`/`MATCH_COMPLETE`/reveal timer; PlayScreen host refactor (count inline, others delegated); all 4 registered + on Home Board
+- [x] **Exit gate MET:** e2e (13/13) — each new activity played to a correct answer; **Match Up links all pairs at portrait AND landscape**; 300 unit + typecheck + lint + both builds green.
+
+---
+## RELEASE CUT-LINE COMPLETE ✅ (1a + 1b + 2a + Find-the-Number + Quick-Look + Match-Up)
+All headline parent asks delivered: more challenges (4 activities), more images (collectibles), streak callouts that say his name + adaptive level progression, left↔right Match Up, more engaging/age-appropriate math (subitizing, numeral recognition, quantity↔symbol mapping). 300 unit + 13 e2e green; web + native builds green; iPad-ready.
+
+## Phase 3 — Compare & Order ✅
+- [x] `compare.ts` + `CompareActivity` (+ tests) — More or Fewer (tap the bigger/smaller group; static targets)
+- [x] `order.ts` + `OrderActivity` (+ tests) — Put It in Order: `next` (single-tap) + `build` (multi-step `sequence` payload)
+- [x] Engine `answer()` extended with a `sequence` branch (multi-step, no-fail); generators built + adversarially verified (workflow, all pass)
+
+## Phase 4 — Arithmetic (gated) ✅
+- [x] `onemore.ts` + `OneMoreActivity`, `add.ts` + `AddActivity` (+ tests) — One More/One Less, Add & Take Away
+- [x] `gating.ts` (+ tests) — arithmetic hidden until the settings toggle OR a mastery bar (count L4 + numeral L3 + match L2 → One More; One More L2 → Add); Home Board driven by `availableActivities`
+- [x] Settings: "Adding & taking away" toggle; `settings` in state + persistence; `SET_SETTINGS`/`toggleArithmetic`
+
+## Phase 3/4 — Exit gate MET ✅
+375 unit + 17 e2e (compare/order/onemore/add smokes + Match Up portrait+landscape) green; typecheck + lint + web/native builds green. Generators adversarially verified.
+
+## Adversarial integration review + previously-deferred items — NOW DONE ✅
+- [x] 5-lens adversarial review run; 3 confirmed findings fixed (§14.4 no-fail guard test, reduce-motion `cf-bob` CSS, Compare overflow); 2 engine concerns verified as false positives.
+- [x] **6/9 look-alike distractors (§5.2)** — `numeral` gates `lookAlike` at L3+ (`CONFUSABLE_PAIRS=[[6,9]]`, partner forced into choices); `NumberButton` draws a ground-line `anchored` so 6/9 never show without an orientation anchor.
+- [x] **Count-Along remediation (§5.1)** — off by default; a wrong Count It answer activates `countAlong`; `CountAlongField` lets the child tap each friend (counts aloud) then reveals the tiles. No-fail; never forced.
+
+**ENTIRE FINALIZED SPEC NOW IMPLEMENTED.** 383 unit + 18 e2e green; typecheck/lint/web+native builds green. Playwright `retries:2` for timing-sensitive no-fail flows.
+
+---
+
 # Counting Friends — Native iPad App (Capacitor) — 2026-06-17
 
 > Goal: a genuine native iPadOS app (Capacitor wrapper of the existing PWA) that **builds and

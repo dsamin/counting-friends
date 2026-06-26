@@ -5,12 +5,23 @@ import PlayScreen from './PlayScreen';
 import type { GameState } from '../game/gameState';
 import type { GameActions } from '../game/useGame';
 import { CHARACTERS } from '../game/characters';
+import { defaultUnlocks } from '../game/content';
 import { promptLine } from '../game/round';
 
 function baseState(over: Partial<GameState> = {}): GameState {
   return {
     screen: 'play',
-    tier: 'easy',
+    activityId: 'count',
+    round: null,
+    mastery: { count: { level: 1, window: [] } },
+    streak: 0,
+    stars: 0,
+    unlocks: defaultUnlocks(),
+    settings: {},
+    overlay: null,
+    matchProgress: null,
+    revealPhase: 'revealed',
+    countAlong: false,
     count: 3,
     choices: [2, 3, 4],
     animal: CHARACTERS[0], // duck
@@ -31,17 +42,22 @@ function baseState(over: Partial<GameState> = {}): GameState {
 
 function spyActions(): GameActions {
   return {
-    pick: vi.fn(),
+    enterActivity: vi.fn(),
+    answer: vi.fn(),
     choose: vi.fn(),
     tapAnimal: vi.fn(),
     replay: vi.fn(),
     back: vi.fn(),
+    openStickers: vi.fn(),
+    closeOverlay: vi.fn(),
+    countSpeak: vi.fn(),
     gateDown: vi.fn(),
     gateUp: vi.fn(),
     closeSettings: vi.fn(),
     setName: vi.fn(),
     toggleReduceMotion: vi.fn(),
     toggleVoice: vi.fn(),
+    toggleArithmetic: vi.fn(),
   };
 }
 

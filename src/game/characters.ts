@@ -21,6 +21,30 @@ export const CHARACTERS: Character[] = [
     sound: 'Boing',
     href: '#bunny',
   },
+  { key: 'dog', name: 'Rex', plural: 'dogs', sound: 'Woof', href: '#dog' },
+  { key: 'owl', name: 'Hoot', plural: 'owls', sound: 'Hoot', href: '#owl' },
+  { key: 'pig', name: 'Pippin', plural: 'pigs', sound: 'Oink', href: '#pig' },
+  {
+    key: 'star',
+    name: 'Twinkle',
+    plural: 'stars',
+    sound: 'Twinkle',
+    href: '#star',
+  },
+  {
+    key: 'heart',
+    name: 'Lovely',
+    plural: 'hearts',
+    sound: 'Thump',
+    href: '#heart',
+  },
+  {
+    key: 'circle',
+    name: 'Roundy',
+    plural: 'circles',
+    sound: 'Boop',
+    href: '#circle',
+  },
 ];
 
 export function getCharacter(key: AnimalKey): Character {

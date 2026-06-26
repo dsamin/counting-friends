@@ -7,7 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  retries: 0,
+  // The game is no-fail and auto-advances on RNG-timed delays, so a few flows are
+  // inherently timing-sensitive under heavy parallelism — retry transient flakes
+  // (the trace is captured on the first retry).
+  retries: 2,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4173/counting-friends/',

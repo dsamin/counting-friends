@@ -22,6 +22,8 @@ interface NumberButtonProps {
   reduceMotion?: boolean;
   /** Forwarded to the button element so confetti can read its center. */
   innerRef?: (el: HTMLButtonElement | null) => void;
+  /** Draw a ground-line under the numeral so look-alikes (6/9) read upright (§5.2). */
+  anchored?: boolean;
 }
 
 export default function NumberButton({
@@ -31,6 +33,7 @@ export default function NumberButton({
   isEasy,
   reduceMotion = false,
   innerRef,
+  anchored = false,
 }: NumberButtonProps) {
   const active = state.animatingValue === value;
   const correct = active && state.animType === 'correct';
@@ -59,7 +62,31 @@ export default function NumberButton({
       onClick={() => onChoose(value)}
       aria-label={`number ${value}`}
     >
-      {value}
+      {anchored ? (
+        <span
+          style={{
+            display: 'inline-flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            lineHeight: 1,
+          }}
+        >
+          {value}
+          {/* Ground line: disambiguates 6 from 9 by showing which way is up. */}
+          <span
+            data-anchor
+            style={{
+              width: '48%',
+              height: 4,
+              borderRadius: 2,
+              background: 'var(--cf-ink)',
+              marginTop: 4,
+            }}
+          />
+        </span>
+      ) : (
+        value
+      )}
     </button>
   );
 }

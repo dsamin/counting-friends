@@ -1,20 +1,52 @@
-import type { Character, Round, Status, Tier } from './types';
+import type { Character, Status } from './types';
+import type { ActivityId, Round } from './activities/types';
+import type { CfSettings, MasteryRecord, Prefs } from './persistence';
+import type { UnlocksState } from './content';
+import { defaultUnlocks } from './content';
 import { CHARACTERS } from './characters';
 import { TIMING } from './constants';
-import type { Prefs } from './persistence';
+
+/** A single celebratory overlay (the arbiter guarantees at most one — §7.6). */
+export type Overlay =
+  | { kind: 'celebrate'; line: string } // streak milestone / level-up banner
+  | { kind: 'unlock'; characterKey: string }; // unlock reveal
 
 /**
- * The full game state. Two top-level screens; while playing, a single round
- * is in flight. Animation fields drive CSS retriggers; `gateProgress` powers
- * the long-press settings gate. Everything is serializable and the reducer
- * never mutates it — see `reducer`.
+ * The full v2 game state. Three top-level screens (`home` | `play` | `stickers`).
+ * Difficulty is per-activity and adaptive (`mastery`), so v1's `tier` is gone.
+ * `round` holds the active activity's round; `count`/`choices`/`animal` are
+ * **derived conveniences** kept in sync by `DEAL_ROUND` for the count activity's
+ * UI (the per-activity host split lands in a later phase). Animation fields drive
+ * CSS retriggers; everything is serializable and the reducer never mutates.
  */
 export interface GameState {
-  screen: 'start' | 'play';
-  tier: Tier;
+  screen: 'home' | 'play' | 'stickers';
+  activityId: ActivityId;
+  round: Round | null;
+  /** Per-activity adaptive mastery (level + rolling outcome window). */
+  mastery: Record<string, MasteryRecord>;
+  /** Consecutive correct round-completes (feeds adaptive + reward callouts). */
+  streak: number;
+  /** Collected stars — monotonic, never decreases (§7.1). */
+  stars: number;
+  /** Unlocked friends / packs / activities (§7.7). */
+  unlocks: UnlocksState;
+  /** Grown-up settings (arithmetic toggle, level override, …). */
+  settings: CfSettings;
+  /** The single active celebratory overlay, if any (§7.6). */
+  overlay: Overlay | null;
+  /** Match Up: the pairs linked so far this round (null outside a match round). */
+  matchProgress: { linked: { leftId: string; rightId: string }[] } | null;
+  /** Quick Look: whether the friends are currently shown or hidden. */
+  revealPhase: 'revealed' | 'hidden';
+  /** Count It remediation: tap-each-friend "count along" mode (off by default, §5.1). */
+  countAlong: boolean;
+
+  // Derived count-activity conveniences (set by DEAL_ROUND).
   count: number;
   choices: number[];
   animal: Character;
+
   status: Status; // 'asking' | 'correct'
   animatingValue: number | null;
   animType: 'correct' | 'wrong' | null;
@@ -28,14 +60,30 @@ export interface GameState {
   speaking: boolean;
 }
 
-/** Build the initial state from loaded prefs plus app defaults. */
+/** Build the initial state from loaded prefs plus the loaded mastery map. */
 export function initialState(
   prefs: Prefs,
-  _defaults: { defaultTier: Tier; voiceEnabled: boolean },
+  init: {
+    mastery: Record<string, MasteryRecord>;
+    stars?: number;
+    unlocks?: UnlocksState;
+    settings?: CfSettings;
+    activityId?: ActivityId;
+  },
 ): GameState {
   return {
-    screen: 'start',
-    tier: prefs.tier,
+    screen: 'home',
+    activityId: init.activityId ?? 'count',
+    round: null,
+    mastery: init.mastery,
+    streak: 0,
+    stars: init.stars ?? 0,
+    unlocks: init.unlocks ?? defaultUnlocks(),
+    settings: init.settings ?? {},
+    overlay: null,
+    matchProgress: null,
+    revealPhase: 'revealed',
+    countAlong: false,
     count: 0,
     choices: [],
     animal: CHARACTERS[0],
@@ -54,11 +102,23 @@ export function initialState(
 }
 
 export type Action =
-  | { type: 'PICK_TIER'; tier: Tier }
-  | { type: 'DEAL_ROUND'; round: Round }
+  | { type: 'ENTER_ACTIVITY'; activityId: ActivityId }
+  | { type: 'GO_HOME' }
+  | { type: 'DEAL_ROUND'; round: Round; activityId: ActivityId }
   | { type: 'CHOOSE'; value: number; correct: boolean }
+  | { type: 'LINK_PAIR'; leftId: string; rightId: string }
+  | { type: 'MATCH_COMPLETE' }
+  | { type: 'SET_REVEAL_PHASE'; phase: 'revealed' | 'hidden' }
+  | { type: 'SET_COUNT_ALONG'; on: boolean }
+  | { type: 'SET_STREAK'; streak: number }
+  | { type: 'SET_MASTERY'; activityId: ActivityId; level: number; window: boolean[] }
+  | { type: 'AWARD_STARS'; stars: number }
+  | { type: 'SET_UNLOCKS'; unlocks: UnlocksState }
+  | { type: 'SET_SETTINGS'; settings: CfSettings }
+  | { type: 'SHOW_OVERLAY'; overlay: Overlay }
+  | { type: 'CLOSE_OVERLAY' }
+  | { type: 'OPEN_STICKERS' }
   | { type: 'CLEAR_ANIM' }
-  | { type: 'BACK' }
   | { type: 'GATE_PROGRESS'; p: number }
   | { type: 'GATE_OPEN' }
   | { type: 'GATE_RESET' }
@@ -71,20 +131,73 @@ export type Action =
 /** Pure reducer. Returns the same reference when nothing changes. */
 export function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case 'PICK_TIER':
-      return { ...state, screen: 'play', tier: action.tier };
+    case 'ENTER_ACTIVITY':
+      return { ...state, screen: 'play', activityId: action.activityId };
 
-    case 'DEAL_ROUND':
+    case 'GO_HOME':
       return {
         ...state,
-        count: action.round.count,
-        animal: action.round.animal,
-        choices: action.round.choices,
+        screen: 'home',
+        settingsOpen: false,
         status: 'asking',
         animatingValue: null,
         animType: null,
+        gateProgress: 0,
+        speaking: false,
+        overlay: null,
+      };
+
+    case 'OPEN_STICKERS':
+      return { ...state, screen: 'stickers', settingsOpen: false, overlay: null };
+
+    case 'DEAL_ROUND': {
+      const r = action.round;
+      // Keep the count UI's flat fields in sync for the count activity.
+      const flat =
+        r.kind === 'count'
+          ? { count: r.count, animal: r.animal, choices: r.choices }
+          : { count: 0, choices: [] as number[], animal: state.animal };
+      return {
+        ...state,
+        round: r,
+        activityId: action.activityId,
+        ...flat,
+        status: 'asking',
+        animatingValue: null,
+        animType: null,
+        overlay: null, // a fresh round clears any celebratory overlay
+        matchProgress: r.kind === 'match' ? { linked: [] } : null,
+        revealPhase: 'revealed',
+        countAlong: false, // a fresh round always starts in normal mode
         roundId: state.roundId + 1,
       };
+    }
+
+    case 'LINK_PAIR':
+      return {
+        ...state,
+        matchProgress: {
+          linked: [
+            ...(state.matchProgress?.linked ?? []),
+            { leftId: action.leftId, rightId: action.rightId },
+          ],
+        },
+      };
+
+    case 'MATCH_COMPLETE':
+      return {
+        ...state,
+        status: 'correct',
+        animKey: state.animKey + 1,
+        animatingValue: null,
+        animType: 'correct',
+      };
+
+    case 'SET_REVEAL_PHASE':
+      return { ...state, revealPhase: action.phase };
+
+    case 'SET_COUNT_ALONG':
+      return { ...state, countAlong: action.on };
 
     case 'CHOOSE': {
       // Rapid-tap guard: only an asking round accepts a choice.
@@ -98,19 +211,36 @@ export function reducer(state: GameState, action: Action): GameState {
       };
     }
 
-    case 'CLEAR_ANIM':
-      return { ...state, animatingValue: null, animType: null };
+    case 'SET_STREAK':
+      return { ...state, streak: action.streak };
 
-    case 'BACK':
+    case 'SET_MASTERY':
       return {
         ...state,
-        screen: 'start',
-        settingsOpen: false,
-        status: 'asking',
-        animatingValue: null,
-        gateProgress: 0,
-        speaking: false,
+        mastery: {
+          ...state.mastery,
+          [action.activityId]: { level: action.level, window: action.window },
+        },
       };
+
+    case 'AWARD_STARS':
+      // Monotonic: stars never decrease (§7.1).
+      return { ...state, stars: Math.max(state.stars, action.stars) };
+
+    case 'SET_UNLOCKS':
+      return { ...state, unlocks: action.unlocks };
+
+    case 'SET_SETTINGS':
+      return { ...state, settings: action.settings };
+
+    case 'SHOW_OVERLAY':
+      return { ...state, overlay: action.overlay };
+
+    case 'CLOSE_OVERLAY':
+      return { ...state, overlay: null };
+
+    case 'CLEAR_ANIM':
+      return { ...state, animatingValue: null, animType: null };
 
     case 'GATE_PROGRESS':
       return { ...state, gateProgress: action.p };

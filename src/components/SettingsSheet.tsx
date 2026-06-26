@@ -296,6 +296,48 @@ export default function SettingsSheet({
         <div
           style={{
             display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 0',
+            borderTop: '2px solid rgba(90,70,51,0.12)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              color: 'var(--cf-ink)',
+            }}
+          >
+            <UiIcon name="settings" size={22} className="cf-settings-row-icon" />
+            <div>
+              <div
+                style={{ fontWeight: 700, color: 'var(--cf-ink)', fontSize: 16 }}
+              >
+                Adding &amp; taking away
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--cf-ink-soft)',
+                  fontWeight: 500,
+                }}
+              >
+                Show the math games now (they also unlock on their own).
+              </div>
+            </div>
+          </div>
+          <Switch
+            on={state.settings.arithmetic === true}
+            label="Adding and taking away"
+            onToggle={actions.toggleArithmetic}
+          />
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
             alignItems: 'center',
             gap: 10,
             marginTop: 18,
